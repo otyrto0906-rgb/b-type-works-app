@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B型制作部 作業管理アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   B型制作部 作業管理アプリ
+   デザイントークン（提案資料のブランド＝墨×金 を継承）
+   ============================================================ */
+:root{
+  --sumi:#23211D;        /* 墨（ブランド黒） */
+  --sumi-2:#3A3731;
+  --gold:#B8912F;        /* 金（ブランドアクセント） */
+  --gold-2:#C9A24B;
+  --gold-pale:#F6EFDD;
+  --cream:#FAF8F3;       /* アプリ背景 */
+  --card:#FFFFFF;
+  --line:#E5E1D8;
+  --ink:#2B2925;
+  --ink-soft:#6E695F;
+  --ok:#3E7C4F;
+  --ok-pale:#EAF3EC;
+  --ng:#B0492E;
+  --ng-pale:#F9ECE7;
+  --info-pale:#EEF1F6;
+  --radius:14px;
+  --shadow:0 2px 10px rgba(35,33,29,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px}
+body{
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  background:var(--cream);color:var(--ink);line-height:1.7;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+/* ふりがな表示切替：body.furigana のときだけ rt を表示 */
+ruby rt{display:none;font-size:.5em;color:var(--ink-soft);font-weight:500}
+body.furigana ruby rt{display:revert}
+
+/* ---------- 共通パーツ ---------- */
+.eyebrow{
+  font-size:.68rem;letter-spacing:.32em;color:var(--gold);
+  font-weight:700;text-transform:uppercase;
+}
+.chip{
+  display:inline-flex;align-items:center;gap:.35em;
+  font-size:.75rem;font-weight:700;padding:.2em .7em;border-radius:999px;
+}
+.chip.status-not_started{background:#EFEDE7;color:var(--ink-soft)}
+.chip.status-in_progress{background:var(--gold-pale);color:var(--gold)}
+.chip.status-submitted{background:var(--info-pale);color:#3D5A8A}
+.chip.status-returned{background:var(--ng-pale);color:var(--ng)}
+.chip.status-approved{background:var(--ok-pale);color:var(--ok)}
+.chip.diff{background:var(--gold-pale);color:var(--gold)}
+.chip.ready{background:var(--ok-pale);color:var(--ok)}
+.chip.prep{background:#EFEDE7;color:var(--ink-soft)}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  font-weight:700;border-radius:12px;transition:transform .06s, box-shadow .15s, background .15s;
+  padding:.65em 1.3em;font-size:.95rem;
+}
+.btn:active{transform:translateY(1px)}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-gold:hover{background:#A57F26}
+.btn-sumi{background:var(--sumi);color:#fff}
+.btn-sumi:hover{background:#000}
+.btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-ng{background:var(--ng);color:#fff}
+.btn-big{font-size:1.15rem;padding:.9em 1.6em;border-radius:16px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-goldtop{border-top:4px solid var(--gold)}
+
+/* ---------- ヘッダー ---------- */
+header.app{
+  background:var(--sumi);color:#fff;position:sticky;top:0;z-index:50;
+}
+.app-inner{
+  max-width:1180px;margin:0 auto;padding:.7rem 1.2rem;
+  display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:.7rem}
+.logo-mark{display:grid;grid-template-columns:repeat(2,10px);gap:3px}
+.logo-mark span{width:10px;height:10px;border:1.5px solid #5b564c}
+.logo-mark span.g{border-color:var(--gold-2)}
+.logo-text b{font-size:1.05rem;font-weight:900;letter-spacing:.05em}
+.logo-text small{display:block;font-size:.6rem;letter-spacing:.28em;color:var(--gold-2)}
+nav.roles{display:flex;gap:.4rem;margin-left:auto}
+.role-tab{
+  color:#CFC9BC;font-weight:700;font-size:.9rem;padding:.5em 1em;border-radius:10px;
+}
+.role-tab:hover{color:#fff}
+.role-tab.active{background:var(--gold);color:#fff}
+.db-chip{
+  font-size:.68rem;color:#CFC9BC;border:1px dashed #5b564c;border-radius:8px;
+  padding:.25em .7em;letter-spacing:.05em;
+}
+.db-chip b{color:var(--gold-2)}
+
+main{max-width:1180px;margin:0 auto;padding:1.6rem 1.2rem 4rem}
+
+/* ---------- ホーム（モード選択） ---------- */
+.home-hero{margin:1.5rem 0 2.2rem}
+.home-hero h1{font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:900;line-height:1.4;margin-top:.4rem}
+.home-hero h1 em{font-style:normal;color:var(--gold)}
+.home-hero p{color:var(--ink-soft);margin-top:.6rem;max-width:38em}
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem}
+.mode-card{padding:1.6rem;text-align:left;display:block;width:100%}
+.mode-card:hover{border-color:var(--gold)}
+.mode-card .icon{font-size:2rem}
+.mode-card h2{font-size:1.25rem;font-weight:900;margin:.5rem 0 .3rem}
+.mode-card p{color:var(--ink-soft);font-size:.9rem}
+.mode-card .go{margin-top:1rem;color:var(--gold);font-weight:700;font-size:.9rem}
+
+/* ---------- 見出し ---------- */
+.page-head{margin-bottom:1.4rem;display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+.page-head h1{font-size:1.45rem;font-weight:900;line-height:1.3;margin-top:.2rem}
+.page-head .sub{color:var(--ink-soft);font-size:.9rem}
+.page-head .right{margin-left:auto;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+
+/* ---------- 利用者：自分をえらぶ ---------- */
+.user-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.user-pick .card{padding:1.3rem;text-align:center}
+.user-pick .card:hover{border-color:var(--gold)}
+.avatar{
+  width:64px;height:64px;border-radius:50%;background:var(--gold-pale);
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto .6rem;
+}
+.user-pick b{font-size:1.1rem;font-weight:900}
+.user-pick small{display:block;color:var(--ink-soft)}
+
+/* ---------- 利用者：きょうのしごと ---------- */
+.task-list{display:grid;gap:1rem}
+.task-card{padding:1.2rem 1.4rem;display:flex;gap:1.1rem;align-items:center;flex-wrap:wrap}
+.task-card .t-icon{
+  width:56px;height:56px;border-radius:14px;background:var(--gold-pale);
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex:none;
+}
+.task-card .t-main{flex:1;min-width:220px}
+.task-card .t-main b{font-size:1.1rem;font-weight:900}
+.task-card .t-meta{display:flex;gap:.6rem;align-items:center;margin-top:.3rem;flex-wrap:wrap;font-size:.8rem;color:var(--ink-soft)}
+.mini-bar{height:8px;background:#EFEDE7;border-radius:99px;overflow:hidden;margin-top:.55rem;max-width:340px}
+.mini-bar i{display:block;height:100%;background:var(--gold);border-radius:99px}
+.returned-note{margin-top:.5rem;font-size:.85rem;color:var(--ng);font-weight:700}
+
+/* ---------- 利用者：作業画面 ---------- */
+.work-top{padding:1.4rem 1.6rem;margin-bottom:1.2rem}
+.work-top-row{display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+.work-top h1{font-size:1.4rem;font-weight:900;line-height:1.35}
+.work-meta{display:flex;gap:.7rem;margin-top:.4rem;flex-wrap:wrap;font-size:.85rem;color:var(--ink-soft);align-items:center}
+.work-actions{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap}
+.progress-wrap{margin-top:1.1rem}
+.progress-label{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;color:var(--ink-soft)}
+.progress-label b{color:var(--gold);font-size:1rem}
+.progress{height:14px;background:#EFEDE7;border-radius:99px;overflow:hidden;margin-top:.3rem}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-2),var(--gold));border-radius:99px;transition:width .3s}
+.staff-msg{
+  margin-top:1rem;background:var(--ng-pale);border:1.5px solid #E4C0B2;border-radius:12px;
+  padding: .9rem 1.1rem;font-size:.95rem;
+}
+.staff-msg b{color:var(--ng)}
+
+.step-list{display:grid;gap:.9rem}
+.step{
+  display:flex;gap:1rem;align-items:flex-start;padding:1.15rem 1.3rem;
+}
+.step.done{background:var(--ok-pale);border-color:#BFDCC6}
+.step.locked{opacity:.5}
+.step-num{
+  flex:none;width:46px;height:46px;border-radius:50%;background:var(--sumi);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;
+}
+.step.done .step-num{background:var(--ok)}
+.step-body{flex:1;min-width:200px}
+.step-body h3{font-size:1.08rem;font-weight:900}
+.step-body p{font-size:.92rem;color:var(--ink-soft);margin-top:.15rem}
+.step-ok-hint{
+  margin-top:.5rem;font-size:.85rem;background:var(--gold-pale);color:#8a6c1f;
+  border-radius:8px;padding:.35em .8em;display:inline-block;
+}
+.step-btn{
+  flex:none;min-width:120px;padding:.8em 1.1em;border-radius:14px;font-weight:900;font-size:1rem;
+  background:#fff;border:2px solid var(--line);color:var(--ink-soft);
+}
+.step-btn:hover{border-color:var(--gold);color:var(--gold)}
+.step.done .step-btn{background:var(--ok);border-color:var(--ok);color:#fff}
+
+/* チェックリスト */
+.checklist-sec{margin-top:1.6rem;padding:1.4rem 1.6rem}
+.checklist-sec h2{font-size:1.2rem;font-weight:900;margin-bottom:.2rem}
+.checklist-sec .lead{color:var(--ink-soft);font-size:.9rem;margin-bottom:1rem}
+.cl-group{margin-top:1rem}
+.cl-group h3{font-size:.85rem;letter-spacing:.15em;color:var(--gold);font-weight:900;border-bottom:2px solid var(--gold-pale);padding-bottom:.3rem;margin-bottom:.5rem}
+.cl-item{
+  display:flex;gap:.8rem;align-items:center;padding:.65rem .5rem;border-radius:10px;cursor:pointer;
+}
+.cl-item:hover{background:var(--gold-pale)}
+.cl-item input{width:22px;height:22px;accent-color:var(--gold);flex:none;cursor:pointer}
+.cl-item span{font-size:.98rem}
+.submit-zone{margin-top:1.4rem;text-align:center}
+.submit-zone .note{font-size:.85rem;color:var(--ink-soft);margin-top:.5rem}
+
+/* 提出完了 */
+.done-hero{text-align:center;padding:3rem 1rem}
+.done-hero .big{font-size:3.4rem}
+.done-hero h1{font-size:1.6rem;font-weight:900;margin:.6rem 0 .3rem}
+.done-hero p{color:var(--ink-soft)}
+
+/* ---------- 指導員 ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.4rem}
+.kpi{padding:1rem 1.2rem}
+.kpi .n{font-size:1.9rem;font-weight:900;color:var(--gold)}
+.kpi .l{font-size:.8rem;color:var(--ink-soft);font-weight:700}
+.section-title{font-size:1.05rem;font-weight:900;margin:1.6rem 0 .8rem;display:flex;align-items:center;gap:.6rem}
+.section-title .count{background:var(--gold);color:#fff;border-radius:99px;font-size:.75rem;padding:.1em .7em}
+
+table.mgr{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+table.mgr th{
+  background:var(--sumi);color:#fff;font-size:.78rem;letter-spacing:.08em;text-align:left;
+  padding:.7rem 1rem;font-weight:700;white-space:nowrap;
+}
+table.mgr td{padding:.85rem 1rem;border-top:1px solid var(--line);font-size:.92rem;vertical-align:middle}
+table.mgr tr:hover td{background:var(--gold-pale)}
+.tbl-bar{display:flex;align-items:center;gap:.6rem;min-width:160px}
+.tbl-bar .mini-bar{flex:1;margin:0}
+.tbl-bar small{color:var(--ink-soft);font-weight:700;white-space:nowrap}
+
+/* 検収画面 */
+.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+@media(max-width:820px){.review-grid{grid-template-columns:1fr}}
+.review-col{padding:1.3rem 1.5rem}
+.review-col h2{font-size:1.05rem;font-weight:900;margin-bottom:.8rem;display:flex;gap:.5rem;align-items:center}
+.rv-step{display:flex;gap:.7rem;align-items:center;padding:.5rem .3rem;border-bottom:1px dashed var(--line);font-size:.93rem}
+.rv-step:last-child{border-bottom:none}
+.rv-badge{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900}
+.rv-badge.yes{background:var(--ok-pale);color:var(--ok)}
+.rv-badge.no{background:#EFEDE7;color:var(--ink-soft)}
+.rv-check{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .3rem;border-bottom:1px dashed var(--line);font-size:.9rem}
+.rv-check:last-child{border-bottom:none}
+.rv-check .self{flex:none;font-size:.7rem;font-weight:900;border-radius:6px;padding:.15em .5em;margin-top:.15em}
+.rv-check .self.y{background:var(--ok-pale);color:var(--ok)}
+.rv-check .self.n{background:var(--ng-pale);color:var(--ng)}
+.rv-check input{width:20px;height:20px;accent-color:var(--ok);margin-top:.2em;cursor:pointer}
+.review-actions{margin-top:1.2rem;padding:1.3rem 1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+.review-actions textarea{
+  flex:1;min-width:240px;border:1.5px solid var(--line);border-radius:10px;padding:.7em 1em;
+  font-family:inherit;font-size:.92rem;min-height:70px;resize:vertical;
+}
+.review-actions textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+
+/* ---------- マニュアル書庫 ---------- */
+.lib-cat{margin-bottom:2rem}
+.lib-cat-head{display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem}
+.lib-cat-head .mark{
+  width:38px;height:38px;border-radius:10px;background:var(--sumi);color:var(--gold-2);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;
+}
+.lib-cat-head h2{font-size:1.1rem;font-weight:900}
+.lib-cat-head small{color:var(--ink-soft)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.lib-card{padding:1.15rem 1.3rem;display:flex;flex-direction:column;gap:.5rem}
+.lib-card .top{display:flex;align-items:center;gap:.6rem}
+.lib-card .code{font-weight:900;color:var(--gold);letter-spacing:.05em}
+.lib-card b{font-size:1.02rem;font-weight:900;line-height:1.4}
+.lib-card .desc{font-size:.85rem;color:var(--ink-soft);flex:1}
+.lib-card .foot{display:flex;gap:.5rem;align-items:center;margin-top:.4rem}
+.lib-card .ver{font-size:.72rem;color:var(--ink-soft);margin-left:auto}
+
+/* ---------- マニュアルモーダル ---------- */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(35,33,29,.55);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:1rem;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:#fff;border-radius:18px;max-width:820px;width:100%;max-height:92vh;
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.modal-head{background:var(--sumi);color:#fff;padding:1.1rem 1.5rem;display:flex;align-items:flex-start;gap:1rem}
+.modal-head .eyebrow{color:var(--gold-2)}
+.modal-head h2{font-size:1.2rem;font-weight:900;margin-top:.15rem}
+.modal-head .meta{font-size:.78rem;color:#CFC9BC;margin-top:.3rem;display:flex;gap:1rem;flex-wrap:wrap}
+.modal-close{
+  margin-left:auto;flex:none;width:38px;height:38px;border-radius:10px;background:#3A3731;color:#fff;
+  font-size:1.1rem;font-weight:900;
+}
+.modal-close:hover{background:var(--gold)}
+.modal-tabs{display:flex;border-bottom:2px solid var(--line);background:#FCFBF7;overflow-x:auto}
+.modal-tab{
+  padding:.8em 1.3em;font-weight:900;font-size:.9rem;color:var(--ink-soft);white-space:nowrap;
+  border-bottom:3px solid transparent;margin-bottom:-2px;
+}
+.modal-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.modal-body{padding:1.4rem 1.6rem;overflow-y:auto}
+.man-sec{margin-bottom:1.5rem}
+.man-sec h3{font-size:.82rem;letter-spacing:.2em;color:var(--gold);font-weight:900;margin-bottom:.5rem}
+.man-goal{
+  background:var(--gold-pale);border-radius:12px;padding:1rem 1.2rem;font-size:.95rem;
+}
+.man-goal .ph{
+  background:#fff;border:2px dashed var(--gold-2);border-radius:10px;height:120px;
+  display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.85rem;
+  margin-bottom:.7rem;
+}
+.man-tools li{list-style:none;padding:.35rem 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+.man-step{display:flex;gap:.9rem;padding:.9rem 0;border-bottom:1px dashed var(--line)}
+.man-step:last-child{border-bottom:none}
+.man-step .n{
+  flex:none;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;
+}
+.man-step b{display:block;font-size:.98rem}
+.man-step p{font-size:.88rem;color:var(--ink-soft)}
+.man-step .okline{font-size:.82rem;color:#8a6c1f;background:var(--gold-pale);border-radius:6px;padding:.15em .6em;display:inline-block;margin-top:.3rem}
+.man-qa{background:#FCFBF7;border:1px solid var(--line);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.7rem}
+.man-qa b{color:var(--gold)}
+.man-qa p{font-size:.9rem;margin-top:.2rem}
+.sample-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.8rem}
+.sample{
+  border-radius:10px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-weight:900;font-size:.85rem;gap:.2rem;border:2px solid;
+}
+.sample.okx{background:var(--ok-pale);border-color:#BFDCC6;color:var(--ok)}
+.sample.ngx{background:var(--ng-pale);border-color:#E4C0B2;color:var(--ng)}
+.sample small{font-weight:500;font-size:.72rem;color:var(--ink-soft)}
+.man-help{background:var(--info-pale);border-radius:12px;padding:1rem 1.2rem;font-size:.92rem}
+
+/* こまったモーダル */
+.help-modal{max-width:480px;text-align:center;padding:2.2rem 1.8rem}
+.help-modal .big{font-size:3rem}
+.help-modal h2{font-size:1.3rem;font-weight:900;margin:.5rem 0}
+.help-modal p{color:var(--ink-soft);font-size:.95rem;margin-bottom:1.2rem}
+
+/* トースト */
+#toast{
+  position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--sumi);color:#fff;padding:.8em 1.6em;border-radius:12px;font-weight:700;
+  opacity:0;transition:.25s;z-index:200;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast b{color:var(--gold-2)}
+
+.back-link{color:var(--gold);font-weight:700;font-size:.9rem;display:inline-flex;gap:.3em;align-items:center;margin-bottom:.8rem}
+
+@media(max-width:640px){
+  html{font-size:15px}
+  .step{flex-direction:column}
+  .step-btn{width:100%}
+  .work-actions{margin-left:0;width:100%}
+  .work-actions .btn{flex:1}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important}
+}
+</style>
+</head>
+<body class="furigana">
+
+<header class="app">
+  <div class="app-inner">
+    <div class="logo">
+      <div class="logo-mark">
+        <span class="g"></span><span></span><span></span><span class="g"></span>
+      </div>
+      <div class="logo-text">
+        <small>PARTNER WORKS</small>
+        <b>B型制作部　作業管理</b>
+      </div>
+    </div>
+    <nav class="roles" role="tablist" aria-label="モード切替">
+      <button class="role-tab" data-nav="home">ホーム</button>
+      <button class="role-tab" data-nav="user">利用者モード</button>
+      <button class="role-tab" data-nav="staff">指導員モード</button>
+      <button class="role-tab" data-nav="library">マニュアル書庫</button>
+    </nav>
+    <span class="db-chip">💾 データ保存：<b>後日DB連携</b>（現在はデモデータ）</span>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalBox" role="dialog" aria-modal="true"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   データ層（★ 後日ここをデータベース／APIに差し替え ★）
+   window.DB のかたちのまま REST / Supabase 等へ移行できます
+   ============================================================ */
+const DB = {
+
+  users: [
+    { id:'u1', name:'さとう はなこ', icon:'🌸', facility:'事業所A（札幌）' },
+    { id:'u2', name:'たなか ゆうと', icon:'⭐', facility:'事業所A（札幌）' },
+    { id:'u3', name:'すずき あい',   icon:'🐤', facility:'事業所B（千歳）' },
+  ],
+
+  staff: [ { id:'s1', name:'太田（運営ハブ）' } ],
+
+  /* マニュアル：手順書＋見本＋チェックリストの「3点セット」構造 */
+  manuals: [
+    {
+      id:'A-1', cat:'A', icon:'🖼️', title:'テンプレートに文字を入れる',
+      catName:'SNS画像づくり', diff:1, time:'20分／1件', ver:'1.2', updated:'2026/07/15', ready:true,
+      goal:'他の事業所さんのSNSで使われる、お知らせ画像をつくる作業です。決まったテンプレートに、指定の文章を入れます。',
+      tools:['ソフト：Canva（ブラウザで開きます）','原稿ファイル：📁「今週の原稿」フォルダ','テンプレート：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'Canvaを開く', d:'デスクトップの「Canva」アイコンを2回クリックします。', ok:'Canvaのホーム画面が出たらOK' },
+        { t:'指定のテンプレートを開く', d:'「共通テンプレ」フォルダの中の、今日のテンプレートを開きます。', ok:'金色のわくのデザインが出たらOK' },
+        { t:'原稿ファイルから文章をコピーする', d:'「今週の原稿」を開いて、自分の番号の文章をコピーします。', ok:'文章が青くえらばれた状態でコピーできたらOK' },
+        { t:'テンプレートの文字を貼り替える', d:'テンプレートの文字を消して、コピーした文章を貼りつけます。', ok:'新しい文章に変わっていたらOK' },
+        { t:'文字がはみ出していないか確認する', d:'文字が金色のわくの中に、ぜんぶ入っているか見ます。', ok:'わくの外に文字がなければOK' },
+        { t:'決まった名前をつけて保存する', d:'ファイル名は「日付_事業所名_SNS_番号」です。', ok:'例：0731_事業所A_SNS_01' },
+        { t:'提出フォルダに入れる', d:'保存したファイルを「📁提出」フォルダに入れます。', ok:'フォルダの中に自分のファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'文字がはみ出してしまう', a:'文字のはしをクリックして、少し小さくします。むずかしいときは職員さんに聞いてOKです。' },
+        { q:'テンプレートがどれかわからない', a:'ファイル名に今日の日付がついているものが、今日のテンプレートです。' },
+        { q:'まちがえて消してしまった', a:'キーボードの「Ctrl」と「Z」を同時に押すと、もとにもどります。' },
+      ],
+      checklist:{
+        work:['文章は原稿と同じである（自分の言葉に変えていない）','文字はテンプレートの枠の中に収まっている','写真や飾りを消していない'],
+        format:['ファイル名は「日付_事業所名_SNS_番号」になっている','サイズは変えていない（テンプレートのまま）'],
+        submit:['「提出」フォルダに入れた','職員さんに「できました」と伝えた'],
+      },
+    },
+    {
+      id:'B-1', cat:'B', icon:'✍️', title:'誤字チェック・校正',
+      catName:'記事の下準備', diff:1, time:'30分／1本', ver:'1.0', updated:'2026/07/20', ready:true,
+      goal:'記事の原稿を読んで、まちがった文字（誤字）を見つけてリストに書き出す作業です。',
+      tools:['原稿：📁「校正まち」フォルダ','チェック表：📁「共通テンプレ」フォルダ','修正リスト：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'原稿ファイルを開く', d:'「校正まち」フォルダから、いちばん上の原稿を開きます。', ok:'原稿の文章が読めたらOK' },
+        { t:'チェック表を横に置く', d:'「誤字チェック表」を開いて、画面の右半分に置きます。', ok:'原稿とチェック表が両方見えたらOK' },
+        { t:'ゆっくり1回読む', d:'まずは内容を知るために、ふつうに読みます。', ok:'さいごまで読めたらOK' },
+        { t:'チェック表の観点で探す', d:'「てにをは」「変換ミス」など、表の項目ごとに探します。', ok:'表の項目をぜんぶ見終わったらOK' },
+        { t:'見つけたら修正リストに書く', d:'「何行目・まちがい・ただしい字」の3つを書きます。', ok:'例：12行目・製作→制作' },
+        { t:'リストを保存して提出する', d:'ファイル名は「日付_事業所名_校正_番号」で提出フォルダへ。', ok:'提出フォルダにファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'まちがいかどうか自信がない', a:'「？」マークをつけてリストに書いてOKです。判断は職員さんがします。' },
+        { q:'1つも見つからない', a:'見つからないこともあります。「誤字なし」と書いて提出してください。' },
+      ],
+      checklist:{
+        work:['チェック表の項目はすべて確認した','修正リストに「行数・まちがい・ただしい字」を書いた'],
+        format:['ファイル名のルールを守っている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    {
+      id:'C-1', cat:'C', icon:'🎬', title:'素材の仕分け',
+      catName:'動画の素材整理', diff:1, time:'40分／1回', ver:'1.0', updated:'2026/07/22', ready:true,
+      goal:'動画や画像のファイルを、ルールに沿ってフォルダに分けて、名前をつけなおす作業です。',
+      tools:['素材：📁「仕分けまち」フォルダ','仕分けルール表：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'「仕分けまち」フォルダを開く', d:'今日の素材が入っています。', ok:'ファイルの一覧が見えたらOK' },
+        { t:'仕分けルール表を確認する', d:'「動画→📁movie」「写真→📁photo」などのルールが書いてあります。', ok:'表を1回読めたらOK' },
+        { t:'ファイルを1つずつ移動する', d:'ルール表のとおりに、正しいフォルダへ移動します。', ok:'「仕分けまち」が空になったらOK' },
+        { t:'名前をつけなおす', d:'ファイル名を「日付_内容_連番」に変えます。', ok:'例：0731_インタビュー_01' },
+        { t:'職員さんに報告する', d:'「仕分けおわりました」と伝えます。', ok:'報告できたらOK' },
+      ],
+      qa:[
+        { q:'どのフォルダかわからないファイルがある', a:'「📁mayoi（まよい）」フォルダに入れてOKです。あとで職員さんが確認します。' },
+      ],
+      checklist:{
+        work:['「仕分けまち」フォルダは空になった','まよったファイルは「mayoi」フォルダに入れた'],
+        format:['ファイル名は「日付_内容_連番」になっている'],
+        submit:['職員さんに報告した'],
+      },
+    },
+    {
+      id:'D-1', cat:'D', icon:'⌨️', title:'データ入力',
+      catName:'データ作業', diff:1, time:'45分／1回', ver:'1.1', updated:'2026/07/10', ready:true,
+      goal:'紙や画像に書いてある情報を、決まったシートに入力する（うつす）作業です。',
+      tools:['もとの資料：📁「入力まち」フォルダ','入力シート：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'入力シートを開く', d:'「共通テンプレ」フォルダの「入力シート」を開きます。', ok:'表が出てきたらOK' },
+        { t:'もとの資料を開く', d:'「入力まち」フォルダの資料を、画面の左に置きます。', ok:'資料とシートが両方見えたらOK' },
+        { t:'1行ずつ入力する', d:'名前は全角、電話番号は半角、が入力のルールです。', ok:'1行うつすごとに見くらべて確認' },
+        { t:'ぜんぶ入力したら見直す', d:'上から下まで、もう1回見くらべます。', ok:'まちがいがなければOK' },
+        { t:'保存して提出する', d:'ファイル名は「日付_事業所名_入力_番号」で提出フォルダへ。', ok:'提出フォルダにファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'字がつぶれて読めない', a:'読めないところは「■」を入力してOKです。あとで職員さんが確認します。' },
+        { q:'全角と半角がわからない', a:'見本の行（1行目）と同じ形になっていればOKです。' },
+      ],
+      checklist:{
+        work:['すべての行を入力した','読めない字は「■」にした','見直しを1回した'],
+        format:['名前は全角・電話番号は半角になっている','ファイル名のルールを守っている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    /* --- 準備中（標準・応用） --- */
+    { id:'A-2', cat:'A', icon:'🖼️', title:'写真の差し替えと加工', catName:'SNS画像づくり', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'A-3', cat:'A', icon:'🖼️', title:'投稿セットの量産', catName:'SNS画像づくり', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'B-2', cat:'B', icon:'✍️', title:'文字起こし', catName:'記事の下準備', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'B-3', cat:'B', icon:'✍️', title:'情報収集と下書き', catName:'記事の下準備', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'C-2', cat:'C', icon:'🎬', title:'カットの切り出し', catName:'動画の素材整理', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'C-3', cat:'C', icon:'🎬', title:'テロップ入れ', catName:'動画の素材整理', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'D-2', cat:'D', icon:'⌨️', title:'リスト作成', catName:'データ作業', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    { id:'D-3', cat:'D', icon:'⌨️', title:'タグ付け・分類', catName:'データ作業', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+  ],
+
+  /* 割当（だれが・どの作業を・どこまで） */
+  assignments: [
+    { id:'as1', userId:'u1', manualId:'A-1', status:'in_progress',
+      stepsDone:[true,true,true,false,false,false,false], checksDone:[], staffChecks:[], comment:'', submittedAt:null },
+    { id:'as2', userId:'u1', manualId:'D-1', status:'approved',
+      stepsDone:[true,true,true,true,true], checksDone:[0,1,2,3,4,5,6], staffChecks:[0,1,2,3,4,5,6], comment:'', submittedAt:'7/29 14:10' },
+    { id:'as3', userId:'u2', manualId:'B-1', status:'submitted',
+      stepsDone:[true,true,true,true,true,true], checksDone:[0,1,2,3,4], staffChecks:[], comment:'', submittedAt:'7/31 10:24' },
+    { id:'as4', userId:'u2', manualId:'A-1', status:'not_started',
+      stepsDone:[false,false,false,false,false,false,false], checksDone:[], staffChecks:[], comment:'', submittedAt:null },
+    { id:'as5', userId:'u3', manualId:'C-1', status:'returned',
+      stepsDone:[true,true,true,true,true], checksDone:[0,1,2,3], staffChecks:[0,1,3], submittedAt:'7/30 15:02',
+      comment:'ファイル名の「連番」が抜けているものが2つありました。名前をつけなおして、もう一度提出してください。' },
+    { id:'as6', userId:'u3', manualId:'D-1', status:'in_progress',
+      stepsDone:[true,false,false,false,false], checksDone:[], staffChecks:[], comment:'', submittedAt:null },
+  ],
+};
+
+/* ============================================================
+   ユーティリティ
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const manual = id => DB.manuals.find(m => m.id === id);
+const user   = id => DB.users.find(u => u.id === id);
+const STATUS = {
+  not_started:{ label:'これから', cls:'status-not_started' },
+  in_progress:{ label:'さぎょう中', cls:'status-in_progress' },
+  submitted:{ label:'かくにん待ち', cls:'status-submitted' },
+  returned:{ label:'やりなおし', cls:'status-returned' },
+  approved:{ label:'ごうかく！', cls:'status-approved' },
+};
+const stars = n => '★'.repeat(n) + '☆'.repeat(3-n);
+const diffName = n => ['','かんたん','ふつう','じっくり'][n];
+const flatChecks = m => [...m.checklist.work, ...m.checklist.format, ...m.checklist.submit];
+const stepPct = a => { const t = a.stepsDone.length; return t ? Math.round(a.stepsDone.filter(Boolean).length / t * 100) : 0; };
+
+function toast(html){
+  const t = $('#toast'); t.innerHTML = html; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ============================================================
+   ルーティング
+   ============================================================ */
+let route = { name:'home' };
+function go(name, params={}){ route = { name, ...params }; render(); window.scrollTo(0,0); }
+
+document.querySelectorAll('[data-nav]').forEach(b =>
+  b.addEventListener('click', () => go(b.dataset.nav))
+);
+
+function render(){
+  document.querySelectorAll('[data-nav]').forEach(b => {
+    const base = { home:'home', user:'user', userTasks:'user', work:'user', doneHero:'user',
+                   staff:'staff', review:'staff', library:'library' }[route.name];
+    b.classList.toggle('active', b.dataset.nav === base);
+  });
+  const views = { home:vHome, user:vUserPick, userTasks:vUserTasks, work:vWork, doneHero:vDoneHero,
+                  staff:vStaff, review:vReview, library:vLibrary };
+  $('#view').innerHTML = views[route.name]();
+  bind();
+}
+
+/* ============================================================
+   画面：ホーム
+   ============================================================ */
+function vHome(){
+  return `
+  <div class="home-hero">
+    <span class="eyebrow">CO-CREATION WORKS PLATFORM</span>
+    <h1>マニュアルを見ながら作業して、<br>できたことを<em>いっしょに確認</em>するアプリ。</h1>
+    <p>就労継続支援B型「B型制作部」の作業管理アプリです。利用者さんは画面を見ながら1ステップずつ作業し、指導員は進みぐあいの確認と検収（チェック）ができます。すべての作業に「手順書・見本・チェックリスト」の3点セットマニュアルが紐づいています。</p>
+  </div>
+  <div class="mode-grid">
+    <button class="card card-goldtop mode-card" data-go="user">
+      <div class="icon">🙋</div>
+      <h2><ruby>利用者<rt>りようしゃ</rt></ruby>モード</h2>
+      <p>きょうのしごとをえらんで、マニュアルを見ながら1ステップずつすすめます。おわったらチェックして、ていしゅつします。</p>
+      <div class="go">さぎょうをはじめる →</div>
+    </button>
+    <button class="card card-goldtop mode-card" data-go="staff">
+      <div class="icon">🧑‍🏫</div>
+      <h2>指導員モード</h2>
+      <p>だれが・どの作業を・どこまで進めたかを一覧で把握。提出物のチェックリスト検収、合格・差し戻しの判断ができます。</p>
+      <div class="go">ダッシュボードを開く →</div>
+    </button>
+    <button class="card card-goldtop mode-card" data-go="library">
+      <div class="icon">📚</div>
+      <h2>マニュアル書庫</h2>
+      <p>4分野12本のマニュアルを「手順書＋見本＋チェックリスト」の3点セットで管理。各作業画面からいつでも開けます。</p>
+      <div class="go">書庫を見る →</div>
+    </button>
+  </div>`;
+}
+
+/* ============================================================
+   画面：利用者（本人えらび → きょうのしごと → 作業）
+   ============================================================ */
+function vUserPick(){
+  return `
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">USER MODE</span>
+      <h1>じぶんの<ruby>名前<rt>なまえ</rt></ruby>をえらんでください</h1>
+    </div>
+    <div class="right">
+      <button class="btn btn-ghost" id="furiBtn">ふりがな：<b id="furiState"></b></button>
+    </div>
+  </div>
+  <div class="user-pick">
+    ${DB.users.map(u => `
+      <button class="card" data-pickuser="${u.id}">
+        <div class="avatar">${u.icon}</div>
+        <b>${u.name}</b>
+        <small>${u.facility}</small>
+      </button>`).join('')}
+  </div>`;
+}
+
+function vUserTasks(){
+  const u = user(route.userId);
+  const list = DB.assignments.filter(a => a.userId === u.id);
+  return `
+  <button class="back-link" data-go="user">← 名前をえらびなおす</button>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">TODAY'S WORKS</span>
+      <h1>${u.icon} ${u.name}さんの きょうのしごと</h1>
+      <div class="sub">やりたいしごとをおして、はじめてください。</div>
+    </div>
+    <div class="right">
+      <button class="btn btn-ghost" id="furiBtn">ふりがな：<b id="furiState"></b></button>
+    </div>
+  </div>
+  <div class="task-list">
+    ${list.map(a => {
+      const m = manual(a.manualId), st = STATUS[a.status], pct = stepPct(a);
+      const openable = a.status !== 'approved';
+      return `
+      <div class="card card-goldtop task-card">
+        <div class="t-icon">${m.icon}</div>
+        <div class="t-main">
+          <b>${m.title}</b>
+          <div class="t-meta">
+            <span class="chip diff">${stars(m.diff)} ${diffName(m.diff)}</span>
+            <span>⏱ めやす ${m.time}</span>
+            <span class="chip ${st.cls}">${st.label}</span>
+          </div>
+          <div class="mini-bar" aria-label="進みぐあい ${pct}%"><i style="width:${pct}%"></i></div>
+          ${a.status === 'returned' ? `<div class="returned-note">📝 職員さんからメッセージがあります</div>` : ''}
+        </div>
+        ${openable
+          ? `<button class="btn btn-gold btn-big" data-openwork="${a.id}">${a.status === 'not_started' ? 'はじめる' : a.status === 'submitted' ? 'かくにん中…' : 'つづきをやる'}</button>`
+          : `<span class="chip status-approved" style="font-size:1rem;padding:.5em 1em">🎉 ごうかく！</span>`}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function vWork(){
+  const a = DB.assignments.find(x => x.id === route.asId);
+  const m = manual(a.manualId), u = user(a.userId);
+  const doneCount = a.stepsDone.filter(Boolean).length;
+  const allSteps = doneCount === a.stepsDone.length;
+  const checks = flatChecks(m);
+  const allChecks = checks.length > 0 && a.checksDone.length === checks.length;
+  const waiting = a.status === 'submitted';
+
+  const groups = [
+    ['さぎょうチェック（内容が正しいか）', m.checklist.work, 0],
+    ['ていさいチェック（サイズ・ファイル名）', m.checklist.format, m.checklist.work.length],
+    ['ていしゅつチェック（出す・報告）', m.checklist.submit, m.checklist.work.length + m.checklist.format.length],
+  ];
+
+  return `
+  <button class="back-link" data-go="userTasks" data-userid="${u.id}">← しごとの一覧にもどる</button>
+
+  <div class="card card-goldtop work-top">
+    <div class="work-top-row">
+      <div>
+        <span class="eyebrow">${m.id} ／ ${m.catName}</span>
+        <h1>${m.icon} ${m.title}</h1>
+        <div class="work-meta">
+          <span class="chip diff">${stars(m.diff)} ${diffName(m.diff)}</span>
+          <span>⏱ めやす ${m.time}</span>
+          <span>📄 マニュアル ver.${m.ver}</span>
+        </div>
+      </div>
+      <div class="work-actions">
+        <button class="btn btn-sumi" data-manual="${m.id}">📖 マニュアルを<ruby>見<rt>み</rt></ruby>る</button>
+        <button class="btn btn-ghost" id="helpBtn">🙋 こまったときは</button>
+        <button class="btn btn-ghost" id="furiBtn">ふりがな：<b id="furiState"></b></button>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>すすみぐあい</span><b>${doneCount} / ${a.stepsDone.length} ステップ</b></div>
+      <div class="progress"><i style="width:${stepPct(a)}%"></i></div>
+    </div>
+    ${a.status === 'returned' && a.comment ? `
+      <div class="staff-msg"><b>📝 職員さんから：</b>${a.comment}</div>` : ''}
+    ${waiting ? `
+      <div class="staff-msg" style="background:var(--info-pale);border-color:#C6D0E0"><b style="color:#3D5A8A">⏳ ていしゅつずみ：</b>いま職員さんがかくにんしています。すこし待っていてください。</div>` : ''}
+  </div>
+
+  <div class="step-list">
+    ${m.steps.map((s, i) => {
+      const done = a.stepsDone[i];
+      const locked = waiting;
+      return `
+      <div class="card step ${done ? 'done' : ''} ${locked ? 'locked' : ''}">
+        <div class="step-num">${done ? '✓' : i+1}</div>
+        <div class="step-body">
+          <h3>STEP${i+1}：${s.t}</h3>
+          <p>${s.d}</p>
+          <span class="step-ok-hint">✔ ${s.ok}</span>
+        </div>
+        <button class="step-btn" data-step="${i}" ${locked ? 'disabled' : ''}>
+          ${done ? 'できた！' : 'できたら<br>おす'}
+        </button>
+      </div>`;
+    }).join('')}
+  </div>
+
+  ${allSteps ? `
+  <div class="card card-goldtop checklist-sec">
+    <span class="eyebrow">FINAL CHECK</span>
+    <h2>さいごのチェックリスト</h2>
+    <p class="lead">ぜんぶのステップができました！ 出す前に、ひとつずつ<ruby>確認<rt>かくにん</rt></ruby>しましょう。</p>
+    ${groups.map(([title, items, base]) => items.length ? `
+      <div class="cl-group">
+        <h3>${title}</h3>
+        ${items.map((c, i) => {
+          const idx = base + i;
+          const on = a.checksDone.includes(idx);
+          return `<label class="cl-item"><input type="checkbox" data-check="${idx}" ${on?'checked':''} ${waiting?'disabled':''}><span>${c}</span></label>`;
+        }).join('')}
+      </div>` : '').join('')}
+    <div class="submit-zone">
+      <button class="btn btn-gold btn-big" id="submitBtn" ${(!allChecks || waiting) ? 'disabled' : ''}>
+        ${waiting ? '⏳ かくにん待ちです' : '📮 ていしゅつする'}
+      </button>
+      ${!allChecks && !waiting ? `<div class="note">チェックがぜんぶ入ると、ていしゅつできます。</div>` : ''}
+    </div>
+  </div>` : ''}`;
+}
+
+function vDoneHero(){
+  const a = DB.assignments.find(x => x.id === route.asId);
+  const u = user(a.userId);
+  return `
+  <div class="done-hero">
+    <div class="big">🎉</div>
+    <h1>ていしゅつ できました！</h1>
+    <p>おつかれさまでした。職員さんがかくにんします。<br>けっかは「きょうのしごと」の画面でわかります。</p>
+    <div style="margin-top:1.6rem">
+      <button class="btn btn-gold btn-big" data-go="userTasks" data-userid="${u.id}">しごとの一覧にもどる</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   画面：指導員
+   ============================================================ */
+function vStaff(){
+  const asg = DB.assignments;
+  const c = s => asg.filter(a => a.status === s).length;
+  const queue = asg.filter(a => a.status === 'submitted');
+  return `
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">STAFF DASHBOARD</span>
+      <h1>指導員ダッシュボード</h1>
+      <div class="sub">担当：${DB.staff[0].name}　｜　だれが・どの作業を・どこまで進めているかを確認できます。</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="card kpi"><div class="n">${c('in_progress')}</div><div class="l">作業中</div></div>
+    <div class="card kpi"><div class="n">${c('submitted')}</div><div class="l">検収まち（要対応）</div></div>
+    <div class="card kpi"><div class="n">${c('returned')}</div><div class="l">差し戻し中</div></div>
+    <div class="card kpi"><div class="n">${c('approved')}</div><div class="l">今週の合格</div></div>
+  </div>
+
+  <div class="section-title">📮 検収まちの提出物 <span class="count">${queue.length}</span></div>
+  ${queue.length ? `
+  <table class="mgr">
+    <thead><tr><th>提出日時</th><th>利用者</th><th>作業</th><th>本人チェック</th><th></th></tr></thead>
+    <tbody>
+    ${queue.map(a => {
+      const m = manual(a.manualId), u = user(a.userId);
+      return `<tr>
+        <td>${a.submittedAt}</td>
+        <td>${u.icon} ${u.name}<br><small style="color:var(--ink-soft)">${u.facility}</small></td>
+        <td><b>${m.id}</b> ${m.title}</td>
+        <td>${a.checksDone.length} / ${flatChecks(m).length} 項目</td>
+        <td><button class="btn btn-gold" data-review="${a.id}">検収する</button></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>` : `<div class="card" style="padding:1.2rem;color:var(--ink-soft)">現在、検収まちの提出物はありません。</div>`}
+
+  <div class="section-title">👥 全体の進捗</div>
+  <table class="mgr">
+    <thead><tr><th>利用者</th><th>作業</th><th>ステップ進捗</th><th>状態</th><th></th></tr></thead>
+    <tbody>
+    ${asg.map(a => {
+      const m = manual(a.manualId), u = user(a.userId), st = STATUS[a.status], pct = stepPct(a);
+      return `<tr>
+        <td>${u.icon} ${u.name}</td>
+        <td><b>${m.id}</b> ${m.title}</td>
+        <td><div class="tbl-bar"><div class="mini-bar"><i style="width:${pct}%"></i></div><small>${pct}%</small></div></td>
+        <td><span class="chip ${st.cls}">${st.label}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-ghost" data-review="${a.id}">詳細</button>
+          <button class="btn btn-ghost" data-manual="${m.id}">📖</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function vReview(){
+  const a = DB.assignments.find(x => x.id === route.asId);
+  const m = manual(a.manualId), u = user(a.userId), st = STATUS[a.status];
+  const checks = flatChecks(m);
+  const reviewable = a.status === 'submitted';
+  return `
+  <button class="back-link" data-go="staff">← ダッシュボードにもどる</button>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">REVIEW ／ ${m.id}</span>
+      <h1>${u.icon} ${u.name}さん ─ ${m.title}</h1>
+      <div class="sub">
+        <span class="chip ${st.cls}">${st.label}</span>
+        ${a.submittedAt ? `　提出：${a.submittedAt}` : ''}　｜　マニュアル ver.${m.ver}
+      </div>
+    </div>
+    <div class="right"><button class="btn btn-sumi" data-manual="${m.id}">📖 マニュアルを開く</button></div>
+  </div>
+
+  <div class="review-grid">
+    <div class="card card-goldtop review-col">
+      <h2>🧭 ステップの完了状況（本人操作）</h2>
+      ${m.steps.map((s, i) => `
+        <div class="rv-step">
+          <span class="rv-badge ${a.stepsDone[i] ? 'yes' : 'no'}">${a.stepsDone[i] ? '✓' : i+1}</span>
+          <span>STEP${i+1}：${s.t}</span>
+        </div>`).join('')}
+    </div>
+    <div class="card card-goldtop review-col">
+      <h2>✅ チェックリスト検収 <small style="font-weight:500;color:var(--ink-soft)">（左＝本人／右□＝職員確認）</small></h2>
+      ${checks.map((c, i) => `
+        <label class="rv-check">
+          <span class="self ${a.checksDone.includes(i) ? 'y' : 'n'}">${a.checksDone.includes(i) ? '本人✓' : '未'}</span>
+          <input type="checkbox" data-staffcheck="${i}" ${a.staffChecks.includes(i) ? 'checked' : ''} ${!reviewable ? 'disabled' : ''}>
+          <span>${c}</span>
+        </label>`).join('')}
+    </div>
+  </div>
+
+  <div class="card review-actions">
+    <textarea id="rvComment" placeholder="差し戻し時のコメント（利用者さんに表示されます。やさしい言葉で具体的に）">${a.status === 'returned' ? a.comment : ''}</textarea>
+    <div style="display:flex;gap:.7rem;flex-direction:column">
+      <button class="btn btn-ok btn-big" id="approveBtn" ${!reviewable ? 'disabled' : ''}>🎉 合格にする</button>
+      <button class="btn btn-ng" id="returnBtn" ${!reviewable ? 'disabled' : ''}>↩ 差し戻す</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   画面：マニュアル書庫
+   ============================================================ */
+function vLibrary(){
+  const cats = [
+    ['A','SNS画像づくり','使用ソフト：Canva想定'],
+    ['B','記事の下準備','校正・文字起こし・下書き'],
+    ['C','動画の素材整理','仕分け・切り出し・テロップ'],
+    ['D','データ作業','入力・リスト・タグ付け'],
+  ];
+  return `
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">MANUAL LIBRARY</span>
+      <h1>マニュアル書庫</h1>
+      <div class="sub">各作業は「①手順書＋②見本＋③チェックリスト」の3点セット。作業画面の「📖マニュアルを見る」からも同じものが開きます。</div>
+    </div>
+    <div class="right">
+      <button class="btn btn-gold" id="newManualBtn">＋ 新規マニュアル作成</button>
+    </div>
+  </div>
+  ${cats.map(([code, name, sub]) => `
+    <section class="lib-cat">
+      <div class="lib-cat-head">
+        <div class="mark">${code}</div>
+        <h2>${name}</h2><small>${sub}</small>
+      </div>
+      <div class="lib-grid">
+        ${DB.manuals.filter(m => m.cat === code).map(m => `
+          <div class="card card-goldtop lib-card">
+            <div class="top">
+              <span class="code">${m.id}</span>
+              <span class="chip diff">${stars(m.diff)}</span>
+              <span class="chip ${m.ready ? 'ready' : 'prep'}">${m.ready ? '公開中' : '準備中'}</span>
+            </div>
+            <b>${m.title}</b>
+            <div class="desc">${m.goal}</div>
+            <div class="foot">
+              ${m.ready
+                ? `<button class="btn btn-sumi" data-manual="${m.id}">📖 開く</button>
+                   <button class="btn btn-ghost" data-editmanual="${m.id}">編集</button>`
+                : `<button class="btn btn-ghost" disabled>整備予定</button>`}
+              <span class="ver">${m.ready ? `ver.${m.ver}　更新 ${m.updated}` : ''}</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </section>`).join('')}`;
+}
+
+/* ============================================================
+   マニュアルモーダル（3点セットビューア）
+   ============================================================ */
+let modalTab = 'steps';
+function openManual(id, tab='steps'){
+  modalTab = tab;
+  const m = manual(id);
+  const tabs = [
+    ['steps','① 手順書'],
+    ['samples','② 見本（OK・NG）'],
+    ['checklist','③ チェックリスト'],
+    ['qa','よくあるつまずき'],
+  ];
+  const body = {
+    steps: `
+      <div class="man-sec">
+        <h3>この作業はなにをつくるか</h3>
+        <div class="man-goal">
+          <div class="ph">🖼 完成物の画像（DB連携後にアップロード表示）</div>
+          ${m.goal}
+        </div>
+      </div>
+      <div class="man-sec">
+        <h3>使うもの</h3>
+        <ul class="man-tools">${m.tools.map(t => `<li>・${t}</li>`).join('')}</ul>
+      </div>
+      <div class="man-sec">
+        <h3>手順（1ページ1ステップ）</h3>
+        ${m.steps.map((s, i) => `
+          <div class="man-step">
+            <div class="n">${i+1}</div>
+            <div>
+              <b>STEP${i+1}：${s.t}</b>
+              <p>${s.d}</p>
+              <span class="okline">✔ こうなればOK：${s.ok}</span>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="man-sec">
+        <h3>こまったときは</h3>
+        <div class="man-help">🙋 わからないときは、<b>とめて職員さんに聞いてOK</b>です。<br>職員のかたへ：運営ディレクター（太田）までチャットでご連絡ください。</div>
+      </div>`,
+    samples: `
+      <div class="man-sec">
+        <h3>OK見本（この幅なら合格）</h3>
+        <div class="sample-grid">
+          <div class="sample okx">◎ OK見本 1<small>基本パターン</small></div>
+          <div class="sample okx">◎ OK見本 2<small>文章が長い場合</small></div>
+          <div class="sample okx">◎ OK見本 3<small>文章が短い場合</small></div>
+        </div>
+      </div>
+      <div class="man-sec">
+        <h3>NG見本（どこがNGかの書き込み付き）</h3>
+        <div class="sample-grid">
+          <div class="sample ngx">✕ NG見本 1<small>文字がわくの外</small></div>
+          <div class="sample ngx">✕ NG見本 2<small>ファイル名ちがい</small></div>
+        </div>
+      </div>
+      <div class="man-help">📁 見本ファイル・テンプレートの実データは、DB連携後にこの画面からダウンロードできるようになります。</div>`,
+    checklist: `
+      ${[['1. 作業チェック（内容が正しいか）', m.checklist.work],
+         ['2. 体裁チェック（サイズ・ファイル名・形式）', m.checklist.format],
+         ['3. 提出チェック（提出先・報告）', m.checklist.submit]].map(([t, items]) => `
+        <div class="man-sec">
+          <h3>${t}</h3>
+          ${items.map(c => `<div class="rv-step"><span class="rv-badge no">□</span><span>${c}</span></div>`).join('')}
+        </div>`).join('')}
+      <div class="man-help">✍ 記入欄（作業した人／確認した職員／日付）は、作業画面・検収画面で自動的に記録されます。</div>`,
+    qa: `
+      ${m.qa.map(x => `<div class="man-qa"><b>Q．${x.q}</b><p>A．${x.a}</p></div>`).join('')}
+      <div class="man-help">💡 テスト運用でつまずいた箇所は、改訂時にこの章へ反映します（作成〜運用サイクル）。</div>`,
+  }[modalTab];
+
+  $('#modalBox').innerHTML = `
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">${m.id} ／ ${m.catName}</span>
+        <h2>${m.icon} ${m.title}</h2>
+        <div class="meta">
+          <span>難易度：${stars(m.diff)} ${diffName(m.diff)}</span>
+          <span>目安時間：${m.time}</span>
+          <span>ver.${m.ver}（更新 ${m.updated}）</span>
+        </div>
+      </div>
+      <button class="modal-close" data-closemodal aria-label="閉じる">✕</button>
+    </div>
+    <div class="modal-tabs">
+      ${tabs.map(([k, l]) => `<button class="modal-tab ${modalTab===k?'active':''}" data-mantab="${k}" data-manid="${m.id}">${l}</button>`).join('')}
+    </div>
+    <div class="modal-body">${body}</div>`;
+  $('#modalBg').classList.add('open');
+}
+
+function openHelp(){
+  $('#modalBox').innerHTML = `
+    <div class="help-modal">
+      <div class="big">🙋</div>
+      <h2>だいじょうぶです！</h2>
+      <p>わからないときは、さぎょうを<b>とめて</b>、<br>職員さんに聞いて大丈夫です。</p>
+      <button class="btn btn-gold btn-big" id="callStaff">🔔 職員さんをよぶ</button>
+      <div style="margin-top:1rem"><button class="btn btn-ghost" data-closemodal>とじる</button></div>
+    </div>`;
+  $('#modalBg').classList.add('open');
+}
+
+function closeModal(){ $('#modalBg').classList.remove('open'); }
+$('#modalBg').addEventListener('click', e => { if (e.target === $('#modalBg')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ============================================================
+   イベントバインド
+   ============================================================ */
+function bind(){
+  const v = $('#view');
+
+  v.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.go === 'userTasks') go('userTasks', { userId: b.dataset.userid });
+    else go(b.dataset.go);
+  }));
+  v.querySelectorAll('[data-pickuser]').forEach(b =>
+    b.addEventListener('click', () => go('userTasks', { userId: b.dataset.pickuser })));
+  v.querySelectorAll('[data-openwork]').forEach(b =>
+    b.addEventListener('click', () => {
+      const a = DB.assignments.find(x => x.id === b.dataset.openwork);
+      if (a.status === 'not_started') a.status = 'in_progress';
+      go('work', { asId: a.id });
+    }));
+
+  /* ステップ完了トグル */
+  v.querySelectorAll('[data-step]').forEach(b =>
+    b.addEventListener('click', () => {
+      const a = DB.assignments.find(x => x.id === route.asId);
+      const i = +b.dataset.step;
+      a.stepsDone[i] = !a.stepsDone[i];
+      if (!a.stepsDone.every(Boolean)) a.checksDone = [];   // 未完了に戻したらチェックはリセット
+      if (a.status === 'returned') a.status = 'in_progress';
+      render();
+      if (a.stepsDone[i]) toast(`✅ <b>STEP${i+1}</b> できました！`);
+    }));
+
+  /* 本人チェックリスト */
+  v.querySelectorAll('[data-check]').forEach(c =>
+    c.addEventListener('change', () => {
+      const a = DB.assignments.find(x => x.id === route.asId);
+      const i = +c.dataset.check;
+      a.checksDone = c.checked ? [...a.checksDone, i] : a.checksDone.filter(x => x !== i);
+      render();
+    }));
+
+  /* 提出 */
+  const sb = v.querySelector('#submitBtn');
+  if (sb) sb.addEventListener('click', () => {
+    const a = DB.assignments.find(x => x.id === route.asId);
+    if (a.status === 'submitted') return;
+    a.status = 'submitted';
+    a.staffChecks = [];
+    const d = new Date();
+    a.submittedAt = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    go('doneHero', { asId: a.id });
+  });
+
+  /* 指導員：検収 */
+  v.querySelectorAll('[data-review]').forEach(b =>
+    b.addEventListener('click', () => go('review', { asId: b.dataset.review })));
+  v.querySelectorAll('[data-staffcheck]').forEach(c =>
+    c.addEventListener('change', () => {
+      const a = DB.assignments.find(x => x.id === route.asId);
+      const i = +c.dataset.staffcheck;
+      a.staffChecks = c.checked ? [...a.staffChecks, i] : a.staffChecks.filter(x => x !== i);
+    }));
+  const ap = v.querySelector('#approveBtn');
+  if (ap) ap.addEventListener('click', () => {
+    const a = DB.assignments.find(x => x.id === route.asId);
+    const total = flatChecks(manual(a.manualId)).length;
+    if (a.staffChecks.length < total && !confirm(`職員確認が ${a.staffChecks.length}/${total} 項目です。このまま合格にしますか？`)) return;
+    a.status = 'approved'; a.comment = '';
+    toast(`🎉 <b>${user(a.userId).name}</b>さんの提出を合格にしました`);
+    go('staff');
+  });
+  const rt = v.querySelector('#returnBtn');
+  if (rt) rt.addEventListener('click', () => {
+    const a = DB.assignments.find(x => x.id === route.asId);
+    const c = v.querySelector('#rvComment').value.trim();
+    if (!c) { toast('↩ 差し戻しには<b>コメント</b>が必要です'); return; }
+    a.status = 'returned'; a.comment = c;
+    toast(`↩ <b>${user(a.userId).name}</b>さんへ差し戻しました`);
+    go('staff');
+  });
+
+  /* マニュアル・ヘルプ */
+  v.querySelectorAll('[data-manual]').forEach(b =>
+    b.addEventListener('click', () => openManual(b.dataset.manual)));
+  const hb = v.querySelector('#helpBtn');
+  if (hb) hb.addEventListener('click', openHelp);
+  v.querySelectorAll('[data-editmanual]').forEach(b =>
+    b.addEventListener('click', () => toast('✏️ マニュアル編集は<b>DB連携後</b>に有効になります')));
+  const nm = v.querySelector('#newManualBtn');
+  if (nm) nm.addEventListener('click', () => toast('＋ 新規作成フォームは<b>DB連携後</b>に有効になります'));
+
+  /* ふりがな切替 */
+  const fb = v.querySelector('#furiBtn');
+  if (fb){
+    const sync = () => { const s = v.querySelector('#furiState'); if (s) s.textContent = document.body.classList.contains('furigana') ? 'ON' : 'OFF'; };
+    sync();
+    fb.addEventListener('click', () => { document.body.classList.toggle('furigana'); sync(); });
+  }
+}
+
+/* モーダル内イベント（動的生成のため委譲） */
+$('#modalBox').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.hasAttribute('data-closemodal')) closeModal();
+  if (t.dataset.mantab) openManual(t.dataset.manid, t.dataset.mantab);
+  if (t.id === 'callStaff'){ closeModal(); toast('🔔 職員さんに<b>おしらせ</b>しました。すこし待っていてください。'); }
+});
+
+render();
+</script>
+</body>
+</html>
