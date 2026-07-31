@@ -101,6 +101,8 @@ nav.roles{display:flex;gap:.4rem;margin-left:auto}
 }
 .role-tab:hover{color:#fff}
 .role-tab.active{background:var(--gold);color:#fff}
+a.ext-link{text-decoration:none;border:1px solid #5b564c;color:var(--gold-2)}
+a.ext-link:hover{border-color:var(--gold);color:#fff;background:rgba(184,145,47,.15)}
 .db-chip{
   font-size:.68rem;color:#CFC9BC;border:1px dashed #5b564c;border-radius:8px;
   padding:.25em .7em;letter-spacing:.05em;
@@ -383,6 +385,7 @@ table.mgr tr:hover td{background:var(--gold-pale)}
       <button class="role-tab" data-nav="staff">指導員モード</button>
       <button class="role-tab" data-nav="library">マニュアル書庫</button>
     </nav>
+    <a class="role-tab ext-link" href="https://otyrto0906-rgb.github.io/b-type-works-app/check" target="_blank" rel="noopener">🖥 導入準備チェック ↗</a>
     <span class="db-chip">💾 データ保存：<b>後日DB連携</b>（現在はデモデータ）</span>
   </div>
 </header>
@@ -605,6 +608,13 @@ function vHome(){
       <p>4分野12本のマニュアルを「手順書＋見本＋チェックリスト」の3点セットで管理。各作業画面からいつでも開けます。</p>
       <div class="go">書庫を見る →</div>
     </button>
+    <a class="card card-goldtop mode-card" style="text-decoration:none;color:inherit"
+       href="https://otyrto0906-rgb.github.io/b-type-works-app/check" target="_blank" rel="noopener">
+      <div class="icon">🖥</div>
+      <h2>導入準備チェックリスト</h2>
+      <p>新しく加盟する事業所むけ。パソコン・機材・ネット環境・アカウント設定など、運用開始までの準備をステップ順に確認できます。</p>
+      <div class="go">チェックリストを開く ↗（別タブ）</div>
+    </a>
   </div>`;
 }
 
