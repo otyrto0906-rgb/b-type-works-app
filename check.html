@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>導入準備チェックリスト｜就労共創ネットワーク</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1e1b16;
+  --paper:#f7f4ee;
+  --card:#ffffff;
+  --gold:#b8912f;
+  --gold-deep:#9a7822;
+  --gold-soft:#f3ead4;
+  --gold-line:#d8c48e;
+  --gray:#8a857c;
+  --line:#e6e1d7;
+  --done:#3f7d4e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Zen Kaku Gothic New",sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.65;
+  padding-bottom:70px;
+}
+header{
+  background:#181613;color:#fff;
+  padding:26px 20px 22px;position:relative;overflow:hidden;
+}
+.sq-grid{position:absolute;top:16px;right:16px;display:grid;grid-template-columns:repeat(4,15px);gap:7px}
+.sq{width:15px;height:15px;border:1.5px solid #3a352c}
+.sq.on{border-color:var(--gold)}
+.eyebrow{color:var(--gold);font-size:11px;letter-spacing:.28em;margin-bottom:7px;font-weight:700}
+h1{font-family:"Shippori Mincho",serif;font-size:clamp(20px,4.5vw,27px);font-weight:700;letter-spacing:.04em}
+header p{color:#b5afa3;font-size:12.5px;margin-top:5px}
+main{max-width:760px;margin:0 auto;padding:0 14px}
+
+/* 全体進捗 */
+.overall{
+  background:var(--card);border:1px solid var(--line);border-top:3px solid var(--gold);
+  margin-top:-12px;position:relative;padding:16px 18px;
+}
+.overall .top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.overall .lbl{font-size:12px;color:var(--gray);letter-spacing:.06em}
+.overall .val{font-family:"Shippori Mincho",serif;font-size:22px;font-weight:700}
+.overall .val small{font-size:12px;font-family:"Zen Kaku Gothic New",sans-serif;color:var(--gray);font-weight:500}
+.bar{height:8px;background:#efece5;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .4s ease}
+.done-msg{margin-top:8px;font-size:12.5px;color:var(--done);font-weight:700}
+
+/* 席数 */
+.seats{
+  display:flex;align-items:center;gap:12px;
+  background:var(--gold-soft);border:1px solid var(--gold-line);
+  padding:11px 15px;margin:14px 0 6px;flex-wrap:wrap;
+}
+.seats strong{font-size:14px}
+.stepper{display:flex;align-items:center;border:1px solid var(--gold-line);background:#fff}
+.stepper button{width:38px;height:38px;border:none;background:#fff;font-size:18px;cursor:pointer;color:var(--gold);font-weight:700}
+.stepper button:hover{background:var(--gold-soft)}
+.stepper span{min-width:44px;text-align:center;font-weight:700;font-size:16px;border-left:1px solid var(--gold-line);border-right:1px solid var(--gold-line);line-height:38px}
+.seats .hint{font-size:11.5px;color:#7a6a3d;flex-basis:100%}
+
+/* ステップ */
+.step{margin-top:16px;background:var(--card);border:1px solid var(--line)}
+.step-head{
+  width:100%;display:flex;align-items:center;gap:13px;
+  padding:13px 15px;background:none;border:none;cursor:pointer;
+  font-family:inherit;text-align:left;
+}
+.badge{
+  flex-shrink:0;width:44px;height:44px;border-radius:50%;
+  background:#211e19;color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1;
+}
+.badge .s{font-size:7.5px;letter-spacing:.18em;color:#9a938a;margin-bottom:2px}
+.badge .n{font-family:"Shippori Mincho",serif;font-size:18px;font-weight:700}
+.step.complete .badge{background:var(--gold)}
+.step.complete .badge .s{color:#f0e4c4}
+.step-title{flex:1}
+.step-title h2{font-family:"Shippori Mincho",serif;font-size:16px;font-weight:700}
+.step-title .sub{font-size:11.5px;color:var(--gray)}
+.step-count{font-size:12px;color:var(--gray);white-space:nowrap}
+.step.complete .step-count{color:var(--done);font-weight:700}
+.chev{color:var(--gray);font-size:12px;transition:transform .2s}
+.step.open .chev{transform:rotate(180deg)}
+.step-body{border-top:1px solid var(--line);display:none}
+.step.open .step-body{display:block}
+
+/* チェック項目 */
+.check{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 15px;border-bottom:1px solid var(--line);cursor:pointer;
+}
+.check:last-child{border-bottom:none}
+.check:hover{background:#fcfaf5}
+.box{
+  flex-shrink:0;width:24px;height:24px;margin-top:2px;
+  border:2px solid #c9c2b4;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.check.on .box{background:var(--gold);border-color:var(--gold)}
+.box svg{opacity:0;width:14px;height:14px}
+.check.on .box svg{opacity:1}
+.cname{font-weight:700;font-size:14px}
+.check.on .cname{color:#8a8478;text-decoration:line-through;text-decoration-color:#c9b878}
+.cspec{font-size:11.5px;color:var(--gray);margin-top:1px}
+.cqty{
+  display:inline-block;font-size:10.5px;color:var(--gold-deep);
+  background:var(--gold-soft);padding:1px 8px;margin-top:4px;font-weight:700;
+}
+.opt-tag{font-size:10px;color:#fff;background:var(--gray);padding:1px 6px;margin-left:6px;vertical-align:middle;font-weight:500}
+
+/* フッター */
+.foot{max-width:760px;margin:26px auto 0;padding:0 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.savestate{font-size:11.5px;color:var(--gray)}
+.reset{background:none;border:1px solid var(--line);color:#9a5648;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit}
+.reset:hover{background:#faf0ee}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="sq-grid" aria-hidden="true">
+    <div class="sq on"></div><div class="sq"></div><div class="sq"></div><div class="sq on"></div>
+    <div class="sq"></div><div class="sq on"></div><div class="sq"></div><div class="sq"></div>
+    <div class="sq"></div><div class="sq"></div><div class="sq on"></div><div class="sq"></div>
+  </div>
+  <div class="eyebrow">SETUP CHECKLIST</div>
+  <h1>導入準備チェックリスト</h1>
+  <p>就労共創ネットワーク｜運用開始までの準備をステップ順に</p>
+</header>
+
+<main>
+  <section class="overall" aria-label="全体の進捗">
+    <div class="top">
+      <span class="lbl">全体の進み具合</span>
+      <span class="val" id="sumVal">–</span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="done-msg" id="doneMsg" hidden>すべての準備が完了しました。運用開始できます！</div>
+  </section>
+
+  <div class="seats">
+    <strong>作業席数</strong>
+    <div class="stepper">
+      <button id="seatMinus" aria-label="席数を減らす">−</button>
+      <span id="seatVal">2</span>
+      <button id="seatPlus" aria-label="席数を増やす">＋</button>
+    </div>
+    <span class="hint">「×席数」の付いた機材は、この席数分ご用意ください。</span>
+  </div>
+
+  <div id="steps"></div>
+</main>
+
+<div class="foot">
+  <span class="savestate" id="saveState">読み込み中…</span>
+  <button class="reset" id="resetBtn">はじめからやり直す</button>
+</div>
+
+<script>
+const KEY='setup-checklist-v2';
+const CHECK_SVG='<svg viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5L6.5 12.5L13.5 4" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+const STEPS=[
+ {title:'パソコン・モニターを揃える',sub:'作業席の土台となる機材',items:[
+   {id:'pc',name:'パソコン（動画強化構成）',spec:'Core i7／Ryzen 7クラス・メモリ16〜32GB・SSD 1TB・GPU推奨。Chromebook・タブレットは不可',perSeat:true},
+   {id:'monitor',name:'モニター 23.8インチ',spec:'フルHD・ノングレア（非光沢）・HDMI接続を確認',perSeat:true},
+   {id:'stand',name:'ノートPCスタンド',spec:'画面の高さ調整・姿勢改善に',perSeat:true,optional:true},
+ ]},
+ {title:'入力機器・音声機器を揃える',sub:'利用者さんの特性に合わせて選ぶ',items:[
+   {id:'mouse',name:'有線マウス',spec:'光学式。クリック音が気になる場合は静音タイプ',perSeat:true},
+   {id:'keyboard',name:'有線キーボード（日本語配列）',spec:'必要に応じて大きめ文字キートップ',perSeat:true},
+   {id:'trackball',name:'トラックボール',spec:'手の動きに制限がある利用者さん向け。事業所に1〜2個'},
+   {id:'headset',name:'有線USBヘッドセット（両耳・マイク付き）',spec:'文字起こし・会議用。Bluetoothは非推奨。利用者ごとに専用が基本',perSeat:true},
+   {id:'careheadset',name:'配慮用ヘッドセット（片耳／骨伝導）',spec:'感覚過敏のある利用者さん向けに1つ',optional:true},
+   {id:'webcam',name:'Webカメラ',spec:'フルHD 1080p。事業所に1台（職員用・オンライン面談に使用）'},
+ ]},
+ {title:'ネット環境を確認する',sub:'作業データのやり取りに必要',items:[
+   {id:'fiber',name:'光回線であることを確認',spec:'モバイル回線・ホームルーターのみは不可'},
+   {id:'speed',name:'作業席で回線速度を測定',spec:'fast.com等で下り100Mbps以上が目安'},
+ ]},
+ {title:'アカウント・ソフトを設定する',sub:'職員のかたが行う設定作業',items:[
+   {id:'google',name:'Googleアカウントを作成（事業所用）',spec:'ファイルの受け渡し・シート作業に使用'},
+   {id:'canva',name:'Canvaアカウントを設定',spec:'無料版でOK。運営のチームに参加'},
+   {id:'chat',name:'チャットツールに参加',spec:'運営との連絡用（指定のツールをご案内します）'},
+   {id:'antivirus',name:'ウイルス対策を確認',spec:'Windows標準のDefender有効化・定義更新を確認'},
+   {id:'admin',name:'アカウント管理者を1名決める',spec:'パスワードは施錠保管。私物USB・スマホへの保存は禁止'},
+   {id:'lock',name:'画面ロックのルールを共有',spec:'離席時は Windowsキー＋L。職員間で周知'},
+ ]},
+ {title:'作業環境を整える',sub:'集中しやすく、疲れにくい席づくり',items:[
+   {id:'tap',name:'電源タップ（雷ガード付き）',spec:'席まわりの配線を整理',perSeat:true},
+   {id:'partition',name:'卓上パーテーション',spec:'集中しやすい環境づくりに',perSeat:true,optional:true},
+   {id:'wrist',name:'リストレスト',spec:'長時間入力の手首負担を軽減',perSeat:true,optional:true},
+   {id:'timer',name:'卓上タイマー',spec:'作業と休憩の切り替え支援に',optional:true},
+   {id:'mousepad',name:'大きめマウスパッド',spec:'マウス操作の安定に',perSeat:true,optional:true},
+ ]},
+];
+
+let state=null;
+let saveTimer=null;
+let openStep=0;
+
+function freshState(){
+  const checks={};
+  STEPS.forEach(s=>s.items.forEach(it=>checks[it.id]=false));
+  return{seats:2,checks};
+}
+
+async function load(){
+  try{
+    const r=await window.storage.get(KEY);
+    if(r&&r.value)state=JSON.parse(r.value);
+  }catch(e){/* 初回はキーなし */}
+  if(!state)state=freshState();
+  // 未完了の最初のステップを開く
+  openStep=STEPS.findIndex(s=>s.items.some(it=>!state.checks[it.id]));
+  if(openStep<0)openStep=0;
+  render();
+  setSave('保存済み');
+}
+
+function setSave(t){document.getElementById('saveState').textContent=t;}
+function scheduleSave(){
+  setSave('保存中…');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{
+      await window.storage.set(KEY,JSON.stringify(state));
+      setSave('保存済み（自動保存）');
+    }catch(e){setSave('保存できませんでした。通信環境をご確認ください');}
+  },400);
+}
+
+function render(){
+  document.getElementById('seatVal').textContent=state.seats;
+  const wrap=document.getElementById('steps');
+  wrap.innerHTML='';
+  let total=0,done=0;
+
+  STEPS.forEach((s,si)=>{
+    const sDone=s.items.filter(it=>state.checks[it.id]).length;
+    total+=s.items.length;done+=sDone;
+    const complete=sDone===s.items.length;
+
+    const sec=document.createElement('section');
+    sec.className='step'+(complete?' complete':'')+(si===openStep?' open':'');
+    sec.innerHTML=`
+      <button class="step-head" aria-expanded="${si===openStep}">
+        <span class="badge"><span class="s">STEP</span><span class="n">${si+1}</span></span>
+        <span class="step-title">
+          <h2>${s.title}</h2>
+          <span class="sub">${s.sub}</span>
+        </span>
+        <span class="step-count">${complete?'✓ 完了':sDone+' / '+s.items.length}</span>
+        <span class="chev">▼</span>
+      </button>
+      <div class="step-body"></div>
+    `;
+    sec.querySelector('.step-head').onclick=()=>{
+      openStep=(openStep===si)?-1:si;
+      render();
+    };
+    const body=sec.querySelector('.step-body');
+    s.items.forEach(it=>{
+      const on=state.checks[it.id];
+      const row=document.createElement('div');
+      row.className='check'+(on?' on':'');
+      row.setAttribute('role','checkbox');
+      row.setAttribute('aria-checked',on);
+      row.setAttribute('tabindex','0');
+      row.innerHTML=`
+        <span class="box">${CHECK_SVG}</span>
+        <span style="flex:1">
+          <span class="cname">${it.name}</span>${it.optional?'<span class="opt-tag">任意</span>':''}
+          ${it.spec?`<div class="cspec">${it.spec}</div>`:''}
+          ${it.perSeat?`<span class="cqty">×席数（${state.seats}）</span>`:''}
+        </span>
+      `;
+      const toggle=()=>{
+        state.checks[it.id]=!state.checks[it.id];
+        scheduleSave();render();
+      };
+      row.onclick=toggle;
+      row.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle();}};
+      body.appendChild(row);
+    });
+    wrap.appendChild(sec);
+  });
+
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('sumVal').innerHTML=`${done}<small> / ${total} 項目（${pct}%）</small>`;
+  document.getElementById('barFill').style.width=pct+'%';
+  document.getElementById('doneMsg').hidden=(done!==total);
+}
+
+/* 席数 */
+document.getElementById('seatPlus').onclick=()=>changeSeats(1);
+document.getElementById('seatMinus').onclick=()=>changeSeats(-1);
+function changeSeats(d){
+  const n=Math.min(20,Math.max(1,state.seats+d));
+  if(n===state.seats)return;
+  state.seats=n;scheduleSave();render();
+}
+
+/* リセット */
+document.getElementById('resetBtn').onclick=async()=>{
+  if(!confirm('すべてのチェックを外して、初期状態に戻します。よろしいですか？'))return;
+  state=freshState();openStep=0;
+  try{await window.storage.set(KEY,JSON.stringify(state));}catch(e){}
+  render();setSave('初期状態に戻しました');
+};
+
+load();
+</script>
+</body>
+</html>
