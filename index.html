@@ -354,12 +354,56 @@ table.mgr tr:hover td{background:var(--gold-pale)}
 
 .back-link{color:var(--gold);font-weight:700;font-size:.9rem;display:inline-flex;gap:.3em;align-items:center;margin-bottom:.8rem}
 
+/* ---------- 管理画面（割当・利用者・データ） ---------- */
+.manage-card{padding:1.2rem 1.4rem;margin-bottom:.4rem}
+.form-grid{display:flex;flex-wrap:wrap;gap:.9rem;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:.35rem}
+.field>span{font-size:.78rem;font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
+.field input[type=text],.field select{
+  font-family:inherit;font-size:.95rem;padding:.55em .8em;
+  border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+  min-width:200px;
+}
+.field input[type=text]:focus,.field select:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.icon-pick{display:flex;flex-wrap:wrap;gap:.4rem;max-width:340px}
+.icon-pick button{
+  width:40px;height:40px;font-size:1.25rem;border:2px solid var(--line);
+  border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;
+}
+.icon-pick button:hover{border-color:var(--gold-2)}
+.icon-pick button.sel{border-color:var(--gold);background:var(--gold-pale)}
+.mg-empty{padding:1.1rem 1.3rem;color:var(--ink-soft);font-size:.92rem}
+.data-actions{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}
+.data-note{font-size:.82rem;color:var(--ink-soft);margin-top:.7rem;line-height:1.7}
+.danger-line{border-top:1px dashed var(--line);margin-top:1.1rem;padding-top:1.1rem}
+.btn-danger{background:#fff;border:1.5px solid #E4C0B2;color:var(--ng)}
+.btn-danger:hover{background:var(--ng-pale)}
+
+/* ---------- PINロック ---------- */
+.pin-wrap{display:flex;justify-content:center;padding:2rem 0}
+.pin-card{max-width:380px;width:100%;text-align:center;padding:2rem 1.6rem}
+.pin-card .big{font-size:2.4rem}
+.pin-card h1{font-size:1.3rem;font-weight:900;margin:.4rem 0 .2rem}
+.pin-card p{color:var(--ink-soft);font-size:.9rem;margin-bottom:1rem}
+.pin-dots{display:flex;justify-content:center;gap:.8rem;margin:1rem 0}
+.pin-dots span{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);background:#fff;transition:.15s}
+.pin-dots span.on{background:var(--gold);border-color:var(--gold)}
+.pin-msg{color:var(--ng);font-weight:700;font-size:.85rem;margin-bottom:.6rem}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;max-width:260px;margin:0 auto}
+.pin-pad button{height:56px;font-size:1.3rem;font-weight:900;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.pin-pad button:hover{border-color:var(--gold);color:var(--gold)}
+.pin-pad button.sub{font-size:.85rem;font-weight:700;color:var(--ink-soft)}
+.pin-forgot{margin-top:1rem;font-size:.78rem;color:var(--ink-soft);text-decoration:underline;background:none}
+.pin-forgot:hover{color:var(--ng)}
+
 @media(max-width:640px){
   html{font-size:15px}
   .step{flex-direction:column}
   .step-btn{width:100%}
   .work-actions{margin-left:0;width:100%}
   .work-actions .btn{flex:1}
+  .field input[type=text],.field select{min-width:0;width:100%}
+  .field{width:100%}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important}
@@ -386,7 +430,7 @@ table.mgr tr:hover td{background:var(--gold-pale)}
       <button class="role-tab" data-nav="library">マニュアル書庫</button>
     </nav>
     <a class="role-tab ext-link" href="https://otyrto0906-rgb.github.io/b-type-works-app/check" target="_blank" rel="noopener">🖥 導入準備チェック ↗</a>
-    <span class="db-chip">💾 データ保存：<b>後日DB連携</b>（現在はデモデータ）</span>
+    <span class="db-chip" id="saveChip">💾 この端末に<b>自動保存</b></span>
   </div>
 </header>
 
@@ -411,6 +455,9 @@ const DB = {
   ],
 
   staff: [ { id:'s1', name:'太田（運営ハブ）' } ],
+
+  /* 端末設定（指導員モードのロック番号など）。エクスポートには含めない */
+  settings: { staffPin: '' },
 
   /* マニュアル：手順書＋見本＋チェックリストの「3点セット」構造 */
   manuals: [
@@ -505,15 +552,207 @@ const DB = {
         submit:['「提出」フォルダに入れた','職員さんに報告した'],
       },
     },
-    /* --- 準備中（標準・応用） --- */
-    { id:'A-2', cat:'A', icon:'🖼️', title:'写真の差し替えと加工', catName:'SNS画像づくり', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'A-3', cat:'A', icon:'🖼️', title:'投稿セットの量産', catName:'SNS画像づくり', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'B-2', cat:'B', icon:'✍️', title:'文字起こし', catName:'記事の下準備', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'B-3', cat:'B', icon:'✍️', title:'情報収集と下書き', catName:'記事の下準備', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'C-2', cat:'C', icon:'🎬', title:'カットの切り出し', catName:'動画の素材整理', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'C-3', cat:'C', icon:'🎬', title:'テロップ入れ', catName:'動画の素材整理', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'D-2', cat:'D', icon:'⌨️', title:'リスト作成', catName:'データ作業', diff:2, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
-    { id:'D-3', cat:'D', icon:'⌨️', title:'タグ付け・分類', catName:'データ作業', diff:3, time:'—', ver:'—', updated:'—', ready:false, goal:'実際の作業依頼の発生に合わせて整備予定です。', tools:[], steps:[], qa:[], checklist:{work:[],format:[],submit:[]} },
+    /* --- 標準（レベル2）・応用（レベル3） --- */
+    {
+      id:'A-2', cat:'A', icon:'🖼️', title:'写真の差し替えと加工',
+      catName:'SNS画像づくり', diff:2, time:'30分／1件', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'テンプレートの写真を、指定された新しい写真に入れかえて、明るさなどをかんたんに整える作業です。',
+      tools:['ソフト：Canva（ブラウザで開きます）','新しい写真：📁「今週の写真」フォルダ','指示書：📁「今週の原稿」フォルダ'],
+      steps:[
+        { t:'Canvaでテンプレートを開く', d:'「共通テンプレ」フォルダから、今日のテンプレートを開きます。', ok:'金色のわくのデザインが出たらOK' },
+        { t:'指示書で使う写真を確認する', d:'「今週の原稿」の指示書に、自分の番号の写真名が書いてあります。', ok:'使う写真の名前がわかったらOK' },
+        { t:'新しい写真をドラッグして入れかえる', d:'「今週の写真」フォルダの写真を、古い写真の上にドラッグします。', ok:'写真がパッと入れかわったらOK' },
+        { t:'写真の位置を整える', d:'写真を2回クリックして、うつしたいところが真ん中になるように動かします。', ok:'顔や商品が切れていなければOK' },
+        { t:'明るさを確認する', d:'暗いときは「調整」から明るさを少しだけ上げます（＋10まで）。', ok:'見本と同じくらいの明るさならOK' },
+        { t:'決まった名前をつけて保存する', d:'ファイル名は「日付_事業所名_SNS写真_番号」です。', ok:'例：0802_事業所A_SNS写真_01' },
+        { t:'提出フォルダに入れて報告する', d:'「提出」フォルダに入れて、職員さんに伝えます。', ok:'フォルダに自分のファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'写真がぼやけて見える', a:'その写真は使わず、指示書の「予備の写真」を使います。予備もぼやけていたら職員さんに伝えてください。' },
+        { q:'写真が横向き・さかさまになっている', a:'写真の上の「回転」ボタンで直せます。' },
+        { q:'どこまで明るくしていいかわからない', a:'＋10までにします。まよったら見本とくらべて、近いほうを選んでください。' },
+      ],
+      checklist:{
+        work:['指示書のとおりの写真に入れかえた','だいじな部分（顔・商品）が切れていない','明るさは見本と同じくらい'],
+        format:['ファイル名は「日付_事業所名_SNS写真_番号」になっている','テンプレートのサイズは変えていない'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    {
+      id:'A-3', cat:'A', icon:'🖼️', title:'投稿セットの量産',
+      catName:'SNS画像づくり', diff:3, time:'60分／1セット（5枚）', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'1つのお知らせにつき5枚の画像セットを、原稿リストのとおりにまとめてつくる作業です。「そろっていること」がいちばん大切です。',
+      tools:['ソフト：Canva（ブラウザで開きます)','セット原稿リスト：📁「今週の原稿」フォルダ','セット用テンプレ（5ページ）：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'セット原稿リストを開く', d:'「今週の原稿」の「セット原稿リスト」を開きます。1〜5番の文章がならんでいます。', ok:'5つの文章が見えたらOK' },
+        { t:'セット用テンプレを開く', d:'5ページがひとつになったテンプレートです。', ok:'ページが5枚ならんでいたらOK' },
+        { t:'1ページ目から順に文章を貼り替える', d:'リストの1番をテンプレの1ページ目へ。番号の順番をまちがえないようにします。', ok:'ページ番号と原稿番号が同じならOK' },
+        { t:'5ページできたら、通しで見直す', d:'1→5の順にめくって、順番と文字のはみ出しを確認します。', ok:'5ページとも枠の中に収まっていればOK' },
+        { t:'色や文字の形を変えていないか確認する', d:'セットは5枚の見た目がそろっていることが大切です。', ok:'5ページとも同じ見た目ならOK' },
+        { t:'まとめて保存する', d:'ファイル名は「日付_事業所名_セット_番号」。5枚が1つのファイルになります。', ok:'例：0802_事業所A_セット_01' },
+        { t:'提出して報告する', d:'「提出」フォルダへ入れて、職員さんに伝えます。', ok:'フォルダにファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'原稿が4つしかない', a:'リストの見落としがないか確認して、なければ「4枚しかつくれません」と職員さんに伝えてください。' },
+        { q:'どこまでやったかわからなくなった', a:'原稿リストの番号と、テンプレのページ番号を1つずつ見くらべて確認しなおします。' },
+        { q:'時間内に終わらない', a:'できたところまでで大丈夫です。「3枚目まで終わりました」のように報告してください。' },
+      ],
+      checklist:{
+        work:['5ページの順番が原稿リストと同じ','文章はぜんぶ枠に収まっている','5ページの見た目がそろっている（色・文字を変えていない）'],
+        format:['ファイル名は「日付_事業所名_セット_番号」になっている','5枚が1つのファイルにまとまっている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    {
+      id:'B-2', cat:'B', icon:'✍️', title:'文字起こし',
+      catName:'記事の下準備', diff:2, time:'60分／音声10分', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'音声を聞いて、話している言葉をそのまま文字にする作業です。10秒ずつ止めながら、ゆっくり進めます。',
+      tools:['音声ファイル：📁「文字起こしまち」フォルダ','入力シート：📁「共通テンプレ」フォルダ','ヘッドセット（両耳・自分専用のもの）'],
+      steps:[
+        { t:'ヘッドセットをつけて音声を開く', d:'「文字起こしまち」のいちばん上のファイルを、再生ソフトで開きます。', ok:'音が聞こえたらOK' },
+        { t:'入力シートを横にならべる', d:'画面の左に音声、右に入力シートを置きます。', ok:'両方見えたらOK' },
+        { t:'10秒くらい聞いたら止めて、文字にする', d:'聞こえたとおりに入力します。「えー」「あのー」は書かなくてOKです。', ok:'10秒ぶん書けたらOK' },
+        { t:'聞き取れないところは「●」を入れる', d:'2回聞いてもわからなければ「●」にして、先へ進みます。', ok:'例：それでは●●について' },
+        { t:'10分ごとに休けいする', d:'耳と目がつかれる作業です。タイマーで区切りましょう。', ok:'休けいできたらOK' },
+        { t:'さいごに1回、通して見直す', d:'音声を流しながら、書いた文字を目で追います。', ok:'大きなぬけがなければOK' },
+        { t:'保存して提出する', d:'ファイル名は「日付_事業所名_文字起こし_番号」で提出フォルダへ。', ok:'フォルダにファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'話すのが速くて追いつけない', a:'再生ソフトの「速さ」を0.75にしてOKです。それでも速いときは職員さんに伝えてください。' },
+        { q:'「●」が多くなってしまう', a:'多くても大丈夫です。むりに聞き取らなくてOK。あとで職員さんが確認します。' },
+        { q:'数字や名前の書き方がわからない', a:'聞こえたとおりでOKです。例：「3万円」の書き方にまよったら「さんまんえん」のままで大丈夫です。' },
+      ],
+      checklist:{
+        work:['音声のさいしょからさいごまで文字にした','聞き取れないところは「●」にした','通しの見直しを1回した'],
+        format:['決まった入力シートに書いた','ファイル名のルールを守っている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    {
+      id:'B-3', cat:'B', icon:'✍️', title:'情報収集と下書き',
+      catName:'記事の下準備', diff:3, time:'90分／1本', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'指示書のテーマについてインターネットで調べ、決まった構成にそって記事の下書きをつくる作業です。',
+      tools:['指示書（テーマ・調べる項目・検索する言葉）：📁「今週の原稿」フォルダ','調べメモシート：📁「共通テンプレ」フォルダ','下書きテンプレ：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'指示書を読む', d:'テーマと「調べる項目」（3〜5個）が書いてあります。', ok:'調べる項目に丸をつけられたらOK' },
+        { t:'指示書の言葉で検索する', d:'検索する言葉は指示書に書いてあります。自分で考えなくて大丈夫です。', ok:'検索結果が出たらOK' },
+        { t:'公式サイトを開いてメモする', d:'会社や役所の公式ページを優先します。わかったことと、そのページのURLをメモシートに書きます。', ok:'項目ごとに「わかったこと＋URL」が書けたらOK' },
+        { t:'見つからない項目は「見つからず」と書く', d:'むりに探し続けなくて大丈夫です。', ok:'メモシートの項目がぜんぶ埋まったらOK' },
+        { t:'下書きテンプレに自分の言葉で書く', d:'見出しごとに2〜3文。サイトの文章をそのまま写すのはNGです。', ok:'ぜんぶの見出しに文章が入ったらOK' },
+        { t:'誤字を1回チェックする', d:'B-1の誤字チェック表を使って見直します。', ok:'チェック表をぜんぶ見終わったらOK' },
+        { t:'メモと下書きの2つを提出する', d:'ファイル名は「日付_事業所名_下書き_番号」で提出フォルダへ。', ok:'2つともフォルダに見えたらOK' },
+      ],
+      qa:[
+        { q:'どのサイトを信じていいかわからない', a:'「公式」と書いてあるページや、住所が「go.jp」のページを優先します。まよったらURLをメモして職員さんに聞いてください。' },
+        { q:'サイトの文章をそのまま写してはだめ？', a:'メモシートに写すのはOKです。下書きは、メモを見ながら自分の言葉に直して書きます。' },
+        { q:'文章がうまく書けない', a:'「〜です。〜ます。」の短い文でOKです。上手さより、正しいことが大切です。' },
+      ],
+      checklist:{
+        work:['調べる項目ぜんぶにメモとURLがある','下書きは自分の言葉で書いた（コピーしていない）','見出しごとに2〜3文ある'],
+        format:['メモと下書きの2つのファイルがある','ファイル名のルールを守っている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    {
+      id:'C-2', cat:'C', icon:'🎬', title:'カットの切り出し',
+      catName:'動画の素材整理', diff:2, time:'60分／1本', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'長い動画から、指示リストの時間どおりに必要な部分だけを切り出して、短い動画にする作業です。',
+      tools:['動画素材：📁「切り出しまち」フォルダ','切り出しリスト（開始・終了の時間）：📁「今週の原稿」フォルダ','編集ソフト（デスクトップのアイコンから開きます）'],
+      steps:[
+        { t:'編集ソフトで動画を開く', d:'「切り出しまち」の動画を、ソフトの画面にドラッグします。', ok:'画面に動画が出たらOK' },
+        { t:'切り出しリストを確認する', d:'「① 0:15〜0:42」のように、開始と終了の時間が書いてあります。', ok:'切り出す数がわかったらOK' },
+        { t:'開始の時間に合わせる', d:'時間の数字をそのまま入力すると、ぴったり合わせられます。', ok:'リストと同じ時間になったらOK' },
+        { t:'終了の時間まで選んで書き出す', d:'選んだ部分だけを保存します。名前は「日付_内容_連番」です。', ok:'例：0802_インタビュー_01' },
+        { t:'書き出した動画を再生して確認する', d:'さいしょとさいごが、リストの時間と合っているか見ます。', ok:'大きくズレていなければOK' },
+        { t:'リストのぶんだけくり返す', d:'①が終わったら②へ。あせらず1つずつ進めます。', ok:'リストぜんぶに✓がついたらOK' },
+        { t:'職員さんに報告する', d:'「切り出し、◯本できました」と伝えます。', ok:'報告できたらOK' },
+      ],
+      qa:[
+        { q:'時間がぴったり合わせられない', a:'1秒くらいのズレは大丈夫です。大きくズレてしまうときは職員さんに伝えてください。' },
+        { q:'書き出しに時間がかかる', a:'そのまま待っていてOKです。待っている間に、次のリストの時間を確認しておきましょう。' },
+        { q:'音が聞こえない', a:'ヘッドセットをさし直してみます。それでもだめなら職員さんに伝えてください。' },
+      ],
+      checklist:{
+        work:['リストにある切り出しをぜんぶ行った','書き出した動画を1本ずつ再生して確認した'],
+        format:['ファイル名は「日付_内容_連番」になっている','決まったフォルダに書き出した'],
+        submit:['職員さんにできた本数を報告した'],
+      },
+    },
+    {
+      id:'C-3', cat:'C', icon:'🎬', title:'テロップ入れ',
+      catName:'動画の素材整理', diff:3, time:'90分／1本', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'動画に、テロップ原稿のとおりの文字（テロップ）を、決まったデザインでつけていく作業です。',
+      tools:['動画：📁「テロップまち」フォルダ','テロップ原稿（文章と時間）：📁「今週の原稿」フォルダ','編集ソフト（テロップのデザインは保存ずみ）'],
+      steps:[
+        { t:'動画とテロップ原稿を開く', d:'原稿には「出す時間」と「文章」がならんでいます。', ok:'両方見えたらOK' },
+        { t:'保存ずみのテロップデザインを選ぶ', d:'文字の形や色は自分で変えません。「共通スタイル」を選ぶだけです。', ok:'見本と同じ見た目の文字が出たらOK' },
+        { t:'原稿の文章をコピーして貼る', d:'自分で打たずに、コピーして貼ります（打ちまちがいを防ぐため）。', ok:'原稿と同じ文章になったらOK' },
+        { t:'出る時間・消える時間を合わせる', d:'原稿に書いてある時間のとおりに合わせます。', ok:'話し始めと同時に文字が出たらOK' },
+        { t:'画面からはみ出していないか確認する', d:'文章が長いときは2行に分けます。', ok:'左右の端が切れていなければOK' },
+        { t:'原稿のぶんだけくり返し、通しで再生する', d:'さいしょから流して、誤字とタイミングを確認します。', ok:'さいごまで確認できたらOK' },
+        { t:'保存して報告する', d:'ファイル名は「日付_内容_テロップ」で保存し、職員さんに伝えます。', ok:'報告できたらOK' },
+      ],
+      qa:[
+        { q:'2行にしても文字が入りきらない', a:'原稿のとおりが基本です。入らないときは職員さんに伝えてください（原稿のほうを直します）。' },
+        { q:'タイミングが少しズレてしまう', a:'0.5秒くらいのズレは大丈夫です。気になるところは場所をメモして、報告のときに伝えましょう。' },
+        { q:'もっといいデザインを思いついた', a:'その気持ちはとてもうれしいです。ただ、共同メディアは「そろっていること」が大切なので、共通スタイルのままでお願いします。アイデアは職員さんに伝えてOKです。' },
+      ],
+      checklist:{
+        work:['テロップは原稿からコピーした（打ちまちがいがない）','出る時間は原稿どおり','通しで1回再生して確認した'],
+        format:['共通スタイルのまま（色・形を変えていない）','画面からのはみ出しがない','ファイル名のルールを守っている'],
+        submit:['保存した','職員さんに報告した'],
+      },
+    },
+    {
+      id:'D-2', cat:'D', icon:'⌨️', title:'リスト作成',
+      catName:'データ作業', diff:2, time:'60分／1回', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'指示書に書かれたホームページなどを見て、必要な情報（名前・住所・URLなど）を表に集めて、リストをつくる作業です。',
+      tools:['指示書（何を・どこから集めるか）：📁「入力まち」フォルダ','リストシート：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'指示書とリストシートを開く', d:'シートの1行目に「集める項目」（列の名前）が書いてあります。', ok:'それぞれの列に何を書くかわかったらOK' },
+        { t:'指示書のページを開く', d:'集める元のホームページのリンクが、指示書に書いてあります。', ok:'ページが開けたらOK' },
+        { t:'1件ずつ、列に合わせて写す', d:'名前は「名前」の列へ、住所は「住所」の列へ。コピーして貼るのが基本です。', ok:'1行ぶん埋まったらOK' },
+        { t:'情報がないところは「なし」と書く', d:'空欄のままにしません。', ok:'空欄がなければOK' },
+        { t:'10件ごとに見直す', d:'行がずれていないか（名前と住所の組み合わせが合っているか）を確認します。', ok:'ずれていなければOK' },
+        { t:'件数を数える', d:'指示書の「◯件」と、リストの行の数が同じか確認します。', ok:'数が合ったらOK' },
+        { t:'保存して提出する', d:'ファイル名は「日付_事業所名_リスト_番号」で提出フォルダへ。', ok:'フォルダにファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'同じお店が2回出てくる', a:'2回目は写さず、備考の列に「重複（ちょうふく）」と書いてください。' },
+        { q:'ページが開けない', a:'リンクの写しまちがいがないか見て、それでも開けなければ「開けず」と書いて先へ進みます。' },
+        { q:'英語のページが出てきた', a:'読めなくて大丈夫です。そのままコピーして貼ればOKです。' },
+      ],
+      checklist:{
+        work:['指示書の件数とリストの行数が合っている','空欄がない（情報がないところは「なし」）','名前と住所などの組み合わせがずれていない'],
+        format:['決まったリストシートに書いた','ファイル名のルールを守っている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
+    {
+      id:'D-3', cat:'D', icon:'⌨️', title:'タグ付け・分類',
+      catName:'データ作業', diff:3, time:'45分／1回', ver:'1.0', updated:'2026/08/02', ready:true,
+      goal:'写真や記事の一覧を見て、「タグルール表」にそって、種類のタグ（ラベル）をつけていく作業です。',
+      tools:['対象リスト：📁「入力まち」フォルダ','タグルール表：📁「共通テンプレ」フォルダ'],
+      steps:[
+        { t:'タグルール表を読む', d:'「食べ物の写真 → #グルメ」のように、タグのつけ方のルールが書いてあります。', ok:'ルールを1回読み終えたらOK' },
+        { t:'対象リストを開く', d:'1行に1つ、写真や記事がならんでいます。', ok:'リストが見えたらOK' },
+        { t:'1件ずつ見て、タグの列に書く', d:'タグは2つまでつけてOK。区切りは「、」です。', ok:'例：#グルメ、#札幌' },
+        { t:'まよったら「？」をつけて先へ進む', d:'考えこまなくて大丈夫。「？」はあとで職員さんが決めます。', ok:'止まらずに進めたらOK' },
+        { t:'さいごに「？」だけを見直す', d:'もう一度見ると決められることもあります。決められなければ「？」のままでOK。', ok:'「？」をぜんぶ見直せたらOK' },
+        { t:'タグの書き方をそろえる', d:'「#グルメ」と「＃グルメ」がまざっていないか確認します（ルール表と同じ形にする）。', ok:'ルール表と同じ形ならOK' },
+        { t:'保存して提出する', d:'ファイル名は「日付_事業所名_タグ_番号」で提出フォルダへ。', ok:'フォルダにファイルが見えたらOK' },
+      ],
+      qa:[
+        { q:'どのタグにも当てはまらない', a:'「？」にしてOKです。「？」が多くても問題ありません。' },
+        { q:'タグを3つ以上つけたい', a:'いちばん合うと思う2つまでにします。まよったら「？」を足してください。' },
+        { q:'ルール表にない新しい種類が出てきた', a:'「？」＋備考に「新しい種類かも」と書いて、職員さんに伝えてください。ルール表の改訂につながります。' },
+      ],
+      checklist:{
+        work:['ぜんぶの行にタグか「？」が入っている','タグはルール表にあるものだけ使った','タグの形（#の種類）がそろっている'],
+        format:['タグは2つまで・区切りは「、」','ファイル名のルールを守っている'],
+        submit:['「提出」フォルダに入れた','職員さんに報告した'],
+      },
+    },
   ],
 
   /* 割当（だれが・どの作業を・どこまで） */
@@ -558,10 +797,139 @@ function toast(html){
 }
 
 /* ============================================================
+   永続化レイヤー（localStorage）
+   ★ Supabase移行時は saveDB / loadDB の中身だけを
+     API呼び出しに差し替えれば、他の画面コードは無変更で動きます ★
+   ============================================================ */
+const DB_KEY = 'btype-works-db-v1';
+
+/* 初期デモデータのスナップショット（「デモデータに戻す」用） */
+const DEMO = JSON.parse(JSON.stringify({
+  users: DB.users, staff: DB.staff, assignments: DB.assignments,
+}));
+
+function setSaveChip(text){
+  const c = $('#saveChip'); if (!c) return;
+  if (text){ c.innerHTML = text; return; }
+  const d = new Date();
+  const hm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  c.innerHTML = `💾 この端末に<b>保存済み</b>（${hm}）`;
+}
+
+function saveDB(){
+  try{
+    localStorage.setItem(DB_KEY, JSON.stringify({
+      v: 1, savedAt: new Date().toISOString(),
+      users: DB.users, staff: DB.staff, assignments: DB.assignments,
+      settings: DB.settings,
+    }));
+    setSaveChip();
+  }catch(e){
+    setSaveChip('💾 <b>保存できませんでした</b>');
+  }
+}
+
+/* データの検証・補正（マニュアル改訂でステップ数が変わった場合等に追従） */
+function normalizeData(d){
+  if (!d || !Array.isArray(d.users) || !Array.isArray(d.assignments)) return null;
+  const users = d.users.filter(u => u && u.id && u.name)
+    .map(u => ({ id:String(u.id), name:String(u.name), icon:u.icon||'🙂', facility:u.facility||'' }));
+  const staff = (Array.isArray(d.staff) && d.staff.length && d.staff[0].name)
+    ? [{ id:'s1', name:String(d.staff[0].name) }] : JSON.parse(JSON.stringify(DEMO.staff));
+  const assignments = d.assignments
+    .filter(a => a && a.id && manual(a.manualId) && users.some(u => u.id === a.userId))
+    .map(a => {
+      const n = manual(a.manualId).steps.length;
+      const steps = Array.isArray(a.stepsDone) ? a.stepsDone.map(Boolean) : [];
+      while (steps.length < n) steps.push(false);
+      steps.length = n;
+      return {
+        id:String(a.id), userId:String(a.userId), manualId:String(a.manualId),
+        status: ['not_started','in_progress','submitted','returned','approved'].includes(a.status) ? a.status : 'not_started',
+        stepsDone: steps,
+        checksDone: Array.isArray(a.checksDone) ? a.checksDone.filter(Number.isInteger) : [],
+        staffChecks: Array.isArray(a.staffChecks) ? a.staffChecks.filter(Number.isInteger) : [],
+        comment: typeof a.comment === 'string' ? a.comment : '',
+        submittedAt: a.submittedAt || null,
+        assignedAt: a.assignedAt || null,
+      };
+    });
+  return { users, staff, assignments };
+}
+
+function applyData(d){
+  DB.users = d.users; DB.staff = d.staff; DB.assignments = d.assignments;
+}
+
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if (!raw) return false;
+    const obj = JSON.parse(raw);
+    const d = normalizeData(obj);
+    if (!d) return false;
+    applyData(d);
+    /* PINは端末設定：バックアップファイルの読み込みでは変更されない */
+    DB.settings.staffPin = (obj.settings && /^\d{4}$/.test(String(obj.settings.staffPin || '')))
+      ? String(obj.settings.staffPin) : '';
+    return true;
+  }catch(e){ return false; }
+}
+
+/* 書き出し（バックアップ／運営ハブへの共有用JSONファイル） */
+function exportDB(){
+  const d = new Date();
+  const ymd = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  const blob = new Blob([JSON.stringify({
+    v: 1, app: 'b-type-works', exportedAt: d.toISOString(),
+    users: DB.users, staff: DB.staff, assignments: DB.assignments,
+  }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `B型制作部_データ_${ymd}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('⬇ データを<b>書き出しました</b>（ダウンロードフォルダをご確認ください）');
+}
+
+/* 読み込み（別端末のバックアップを復元） */
+function importDB(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = normalizeData(JSON.parse(r.result));
+      if (!d){ toast('⚠ このファイルは<b>読み込めません</b>（形式が違います）'); return; }
+      if (!confirm(`読み込むと、この端末の現在のデータは置き換えられます。\n（読み込む内容：利用者 ${d.users.length}名／割当 ${d.assignments.length}件）\nよろしいですか？`)) return;
+      applyData(d); saveDB(); go('staff');
+      toast('⬆ データを<b>読み込みました</b>');
+    }catch(e){ toast('⚠ このファイルは<b>読み込めません</b>'); }
+  };
+  r.readAsText(file);
+}
+
+const genId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const todayStr = () => { const d = new Date(); return `${d.getMonth()+1}/${d.getDate()}`; };
+
+/* ============================================================
    ルーティング
    ============================================================ */
 let route = { name:'home' };
-function go(name, params={}){ route = { name, ...params }; render(); window.scrollTo(0,0); }
+
+/* PINロック（指導員モードの誤操作防止） */
+const STAFF_ROUTES = ['staff','review','manage'];
+let staffUnlocked = false;
+let pinTarget = null;
+let pinBuf = '';
+let pinMsg = '';
+
+function go(name, params={}){
+  if (name !== 'manage') editUserId = null;
+  if (STAFF_ROUTES.includes(name) && DB.settings.staffPin && !staffUnlocked){
+    pinTarget = { name, params }; pinBuf = ''; pinMsg = '';
+    route = { name:'pin' }; render(); window.scrollTo(0,0); return;
+  }
+  route = { name, ...params }; render(); window.scrollTo(0,0);
+}
 
 document.querySelectorAll('[data-nav]').forEach(b =>
   b.addEventListener('click', () => go(b.dataset.nav))
@@ -569,12 +937,12 @@ document.querySelectorAll('[data-nav]').forEach(b =>
 
 function render(){
   document.querySelectorAll('[data-nav]').forEach(b => {
-    const base = { home:'home', user:'user', userTasks:'user', work:'user', doneHero:'user',
-                   staff:'staff', review:'staff', library:'library' }[route.name];
-    b.classList.toggle('active', b.dataset.nav === base);
+    const base = { home:'home', user:'user', userTasks:'user', work:'work', doneHero:'user',
+                   staff:'staff', review:'staff', manage:'staff', pin:'staff', library:'library' }[route.name];
+    b.classList.toggle('active', b.dataset.nav === (base === 'work' ? 'user' : base));
   });
   const views = { home:vHome, user:vUserPick, userTasks:vUserTasks, work:vWork, doneHero:vDoneHero,
-                  staff:vStaff, review:vReview, library:vLibrary };
+                  staff:vStaff, review:vReview, manage:vManage, pin:vPinLock, library:vLibrary };
   $('#view').innerHTML = views[route.name]();
   bind();
 }
@@ -657,6 +1025,10 @@ function vUserTasks(){
       <button class="btn btn-ghost" id="furiBtn">ふりがな：<b id="furiState"></b></button>
     </div>
   </div>
+  ${list.length === 0 ? `
+  <div class="card mg-empty" style="padding:1.6rem">
+    🕊 きょうのしごとは、まだありません。<br>職員さんが用意してくれるまで、すこし待っていてください。
+  </div>` : ''}
   <div class="task-list">
     ${list.map(a => {
       const m = manual(a.manualId), st = STATUS[a.status], pct = stepPct(a);
@@ -786,6 +1158,30 @@ function vDoneHero(){
 /* ============================================================
    画面：指導員
    ============================================================ */
+/* ============================================================
+   画面：PINロック
+   ============================================================ */
+function vPinLock(){
+  return `
+  <div class="pin-wrap">
+    <div class="card card-goldtop pin-card">
+      <div class="big">🔒</div>
+      <h1>指導員モード</h1>
+      <p>職員のかたは、4けたの番号を入力してください。</p>
+      <div class="pin-dots" aria-label="入力状況">${[0,1,2,3].map(i => `<span class="${i < pinBuf.length ? 'on' : ''}"></span>`).join('')}</div>
+      ${pinMsg ? `<div class="pin-msg">${pinMsg}</div>` : ''}
+      <div class="pin-pad">
+        ${[1,2,3,4,5,6,7,8,9].map(n => `<button data-pin="${n}">${n}</button>`).join('')}
+        <button data-pinclear class="sub">けす</button>
+        <button data-pin="0">0</button>
+        <button data-pinback class="sub" aria-label="1文字けす">←</button>
+      </div>
+      <div style="margin-top:1.2rem"><button class="btn btn-ghost" data-go="home">← ホームにもどる</button></div>
+      <button class="pin-forgot" id="pinForgot">番号を忘れた場合</button>
+    </div>
+  </div>`;
+}
+
 function vStaff(){
   const asg = DB.assignments;
   const c = s => asg.filter(a => a.status === s).length;
@@ -796,6 +1192,10 @@ function vStaff(){
       <span class="eyebrow">STAFF DASHBOARD</span>
       <h1>指導員ダッシュボード</h1>
       <div class="sub">担当：${DB.staff[0].name}　｜　だれが・どの作業を・どこまで進めているかを確認できます。</div>
+    </div>
+    <div class="right">
+      ${DB.settings.staffPin ? `<button class="btn btn-ghost" id="lockBtn">🔒 ロックする</button>` : ''}
+      <button class="btn btn-gold" data-go="manage">⚙ 割当・利用者の管理</button>
     </div>
   </div>
 
@@ -825,7 +1225,8 @@ function vStaff(){
   </table>` : `<div class="card" style="padding:1.2rem;color:var(--ink-soft)">現在、検収まちの提出物はありません。</div>`}
 
   <div class="section-title">👥 全体の進捗</div>
-  <table class="mgr">
+  ${asg.length === 0 ? `<div class="card mg-empty">まだ割当がありません。「⚙ 割当・利用者の管理」から、利用者さんに作業を割り当ててください。</div>` : ''}
+  <table class="mgr" ${asg.length === 0 ? 'hidden' : ''}>
     <thead><tr><th>利用者</th><th>作業</th><th>ステップ進捗</th><th>状態</th><th></th></tr></thead>
     <tbody>
     ${asg.map(a => {
@@ -843,6 +1244,160 @@ function vStaff(){
     }).join('')}
     </tbody>
   </table>`;
+}
+
+/* ============================================================
+   画面：管理（割当・利用者・データ）
+   ============================================================ */
+const ICON_SET = ['🌸','⭐','🐤','🍀','🐻','🎵','🌙','🚀','🐟','🍎','🦉','🌻','🐢','⚽','🎨','🍞'];
+let editUserId = null;   // 利用者編集モード
+
+function vManage(){
+  const readyManuals = DB.manuals.filter(m => m.ready);
+  const editing = editUserId ? user(editUserId) : null;
+  const asgOf = uid => DB.assignments.filter(a => a.userId === uid);
+
+  return `
+  <button class="back-link" data-go="staff">← ダッシュボードにもどる</button>
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">MANAGEMENT</span>
+      <h1>割当・利用者・データの管理</h1>
+      <div class="sub">作業の割り当て、利用者さんの登録、データのバックアップはこの画面で行います。</div>
+    </div>
+  </div>
+
+  <div class="section-title">📌 新しい割当をつくる</div>
+  <div class="card card-goldtop manage-card">
+    ${DB.users.length === 0 ? `
+      <div class="mg-empty" style="padding:0">先に、下の「利用者の管理」から利用者さんを登録してください。</div>
+    ` : `
+    <div class="form-grid">
+      <label class="field">
+        <span>だれに</span>
+        <select id="asgUser">
+          ${DB.users.map(u => `<option value="${u.id}">${u.icon} ${u.name}（${u.facility}）</option>`).join('')}
+        </select>
+      </label>
+      <label class="field">
+        <span>どの作業を（公開中のマニュアルのみ）</span>
+        <select id="asgManual">
+          ${readyManuals.map(m => `<option value="${m.id}">${m.id}　${m.title}（${diffName(m.diff)}・${m.time}）</option>`).join('')}
+        </select>
+      </label>
+      <button class="btn btn-gold" id="asgAddBtn">＋ 割り当てる</button>
+    </div>`}
+  </div>
+
+  <div class="section-title">🗂 割当の一覧 <span class="count">${DB.assignments.length}</span></div>
+  ${DB.assignments.length === 0
+    ? `<div class="card mg-empty">まだ割当がありません。上のフォームからつくれます。</div>`
+    : `
+  <table class="mgr">
+    <thead><tr><th>利用者</th><th>作業</th><th>状態</th><th>割当日</th><th></th></tr></thead>
+    <tbody>
+    ${DB.assignments.map(a => {
+      const m = manual(a.manualId), u = user(a.userId), st = STATUS[a.status];
+      return `<tr>
+        <td>${u.icon} ${u.name}</td>
+        <td><b>${m.id}</b> ${m.title}</td>
+        <td><span class="chip ${st.cls}">${st.label}</span></td>
+        <td>${a.assignedAt || '—'}</td>
+        <td style="white-space:nowrap;text-align:right">
+          <button class="btn btn-ghost" data-review="${a.id}">詳細</button>
+          <button class="btn btn-danger" data-delasg="${a.id}">削除</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`}
+
+  <div class="section-title">👥 利用者の管理 <span class="count">${DB.users.length}</span></div>
+  <div class="card card-goldtop manage-card">
+    <div style="font-weight:900;margin-bottom:.8rem">${editing ? `✏️ 「${editing.name}」さんを編集中` : '＋ 利用者さんを追加する'}</div>
+    <div class="form-grid">
+      <label class="field">
+        <span>名前（ひらがな推奨）</span>
+        <input type="text" id="usrName" placeholder="例：さとう はなこ" value="${editing ? editing.name : ''}">
+      </label>
+      <label class="field">
+        <span>所属事業所</span>
+        <input type="text" id="usrFac" placeholder="例：事業所A（札幌）" value="${editing ? editing.facility : ''}">
+      </label>
+      <div class="field">
+        <span>アイコン</span>
+        <div class="icon-pick" id="iconPick">
+          ${ICON_SET.map(ic => `<button type="button" data-icon="${ic}" class="${(editing ? editing.icon : ICON_SET[0]) === ic ? 'sel' : ''}">${ic}</button>`).join('')}
+        </div>
+      </div>
+      <button class="btn btn-gold" id="usrSaveBtn">${editing ? '💾 更新する' : '＋ 追加する'}</button>
+      ${editing ? `<button class="btn btn-ghost" id="usrCancelBtn">やめる</button>` : ''}
+    </div>
+  </div>
+  ${DB.users.length === 0
+    ? `<div class="card mg-empty">まだ利用者さんが登録されていません。</div>`
+    : `
+  <table class="mgr">
+    <thead><tr><th>利用者</th><th>所属</th><th>割当</th><th></th></tr></thead>
+    <tbody>
+    ${DB.users.map(u => `
+      <tr>
+        <td style="font-size:1.05rem">${u.icon} <b>${u.name}</b></td>
+        <td>${u.facility}</td>
+        <td>${asgOf(u.id).length} 件</td>
+        <td style="white-space:nowrap;text-align:right">
+          <button class="btn btn-ghost" data-edituser="${u.id}">編集</button>
+          <button class="btn btn-danger" data-deluser="${u.id}">削除</button>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`}
+
+  <div class="section-title">💾 データの管理</div>
+  <div class="card manage-card">
+    <div class="data-actions">
+      <button class="btn btn-sumi" id="expBtn">⬇ データを書き出す（バックアップ）</button>
+      <button class="btn btn-ghost" id="impBtn">⬆ ファイルから読み込む</button>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+    </div>
+    <div class="data-note">
+      ・データは<b>この端末のブラウザ内</b>に自動保存されています（他のパソコンとは共有されません）。<br>
+      ・<b>週に1回</b>を目安に書き出して、共有ドライブ等へ保管してください。端末の入れ替え・故障時はそのファイルから復元できます。<br>
+      ・ロック番号（PIN）はファイルに含まれません（端末ごとの設定です）。<br>
+      ・ブラウザの「閲覧データの削除」を行うとデータが消えます。ご注意ください。
+    </div>
+    <div class="form-grid" style="margin-top:1.1rem">
+      <label class="field">
+        <span>担当職員名（ダッシュボードに表示）</span>
+        <input type="text" id="staffName" value="${DB.staff[0].name}">
+      </label>
+      <button class="btn btn-ghost" id="staffSaveBtn">名前を保存</button>
+    </div>
+    <div class="danger-line">
+      <div class="data-actions">
+        <button class="btn btn-danger" id="demoBtn">↺ デモデータに戻す</button>
+        <button class="btn btn-danger" id="wipeBtn">🗑 すべて空にする（実運用の開始時に）</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">🔒 指導員モードのロック（PIN）</div>
+  <div class="card manage-card">
+    <div style="margin-bottom:.8rem">
+      ${DB.settings.staffPin
+        ? `現在：<span class="chip status-approved">設定ずみ</span>　指導員モードを開くとき、4けたの番号の入力が必要です。`
+        : `現在：<span class="chip status-returned">未設定</span>　だれでも指導員モードを開けます。<b>実運用の前に設定をおすすめします。</b>`}
+    </div>
+    <div class="form-grid">
+      <label class="field">
+        <span>${DB.settings.staffPin ? '新しい番号（4けたの数字）' : '番号（4けたの数字）'}</span>
+        <input type="text" id="pinInput" inputmode="numeric" maxlength="4" placeholder="例：2468" autocomplete="off">
+      </label>
+      <button class="btn btn-gold" id="pinSetBtn">${DB.settings.staffPin ? '変更する' : '設定する'}</button>
+      ${DB.settings.staffPin ? `<button class="btn btn-danger" id="pinOffBtn">ロックを解除（なしにする）</button>` : ''}
+    </div>
+    <div class="data-note">※ 利用者さんの誤操作を防ぐための、端末内のかんたんなロックです。番号は忘れないようにメモして保管してください（忘れると、この端末のデータ初期化が必要になります）。</div>
+  </div>`;
 }
 
 function vReview(){
@@ -1066,7 +1621,7 @@ function bind(){
   v.querySelectorAll('[data-openwork]').forEach(b =>
     b.addEventListener('click', () => {
       const a = DB.assignments.find(x => x.id === b.dataset.openwork);
-      if (a.status === 'not_started') a.status = 'in_progress';
+      if (a.status === 'not_started'){ a.status = 'in_progress'; saveDB(); }
       go('work', { asId: a.id });
     }));
 
@@ -1078,6 +1633,7 @@ function bind(){
       a.stepsDone[i] = !a.stepsDone[i];
       if (!a.stepsDone.every(Boolean)) a.checksDone = [];   // 未完了に戻したらチェックはリセット
       if (a.status === 'returned') a.status = 'in_progress';
+      saveDB();
       render();
       if (a.stepsDone[i]) toast(`✅ <b>STEP${i+1}</b> できました！`);
     }));
@@ -1088,6 +1644,7 @@ function bind(){
       const a = DB.assignments.find(x => x.id === route.asId);
       const i = +c.dataset.check;
       a.checksDone = c.checked ? [...a.checksDone, i] : a.checksDone.filter(x => x !== i);
+      saveDB();
       render();
     }));
 
@@ -1100,6 +1657,7 @@ function bind(){
     a.staffChecks = [];
     const d = new Date();
     a.submittedAt = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    saveDB();
     go('doneHero', { asId: a.id });
   });
 
@@ -1111,6 +1669,7 @@ function bind(){
       const a = DB.assignments.find(x => x.id === route.asId);
       const i = +c.dataset.staffcheck;
       a.staffChecks = c.checked ? [...a.staffChecks, i] : a.staffChecks.filter(x => x !== i);
+      saveDB();
     }));
   const ap = v.querySelector('#approveBtn');
   if (ap) ap.addEventListener('click', () => {
@@ -1118,6 +1677,7 @@ function bind(){
     const total = flatChecks(manual(a.manualId)).length;
     if (a.staffChecks.length < total && !confirm(`職員確認が ${a.staffChecks.length}/${total} 項目です。このまま合格にしますか？`)) return;
     a.status = 'approved'; a.comment = '';
+    saveDB();
     toast(`🎉 <b>${user(a.userId).name}</b>さんの提出を合格にしました`);
     go('staff');
   });
@@ -1127,8 +1687,168 @@ function bind(){
     const c = v.querySelector('#rvComment').value.trim();
     if (!c) { toast('↩ 差し戻しには<b>コメント</b>が必要です'); return; }
     a.status = 'returned'; a.comment = c;
+    saveDB();
     toast(`↩ <b>${user(a.userId).name}</b>さんへ差し戻しました`);
     go('staff');
+  });
+
+  /* ---------- 管理画面：割当 ---------- */
+  const asgAdd = v.querySelector('#asgAddBtn');
+  if (asgAdd) asgAdd.addEventListener('click', () => {
+    const userId = v.querySelector('#asgUser').value;
+    const manualId = v.querySelector('#asgManual').value;
+    const m = manual(manualId), u = user(userId);
+    if (!m || !u) return;
+    const dup = DB.assignments.find(a => a.userId === userId && a.manualId === manualId && a.status !== 'approved');
+    if (dup){ toast(`⚠ <b>${u.name}</b>さんには「${m.title}」がすでに割当済みです`); return; }
+    DB.assignments.push({
+      id: genId('as'), userId, manualId, status: 'not_started',
+      stepsDone: m.steps.map(() => false),
+      checksDone: [], staffChecks: [], comment: '', submittedAt: null,
+      assignedAt: todayStr(),
+    });
+    saveDB(); render();
+    toast(`📌 <b>${u.name}</b>さんに「${m.title}」を割り当てました`);
+  });
+
+  v.querySelectorAll('[data-delasg]').forEach(b =>
+    b.addEventListener('click', () => {
+      const a = DB.assignments.find(x => x.id === b.dataset.delasg);
+      if (!a) return;
+      const m = manual(a.manualId), u = user(a.userId);
+      const warn = a.status === 'submitted' ? '\n※ この割当は「検収まち」です。提出内容も消えます。' : '';
+      if (!confirm(`${u.name}さんの「${m.title}」の割当を削除します。進捗も消えます。${warn}\nよろしいですか？`)) return;
+      DB.assignments = DB.assignments.filter(x => x.id !== a.id);
+      saveDB(); render();
+      toast('🗑 割当を<b>削除しました</b>');
+    }));
+
+  /* ---------- 管理画面：利用者 ---------- */
+  const iconPick = v.querySelector('#iconPick');
+  if (iconPick) iconPick.addEventListener('click', e => {
+    const b = e.target.closest('button[data-icon]'); if (!b) return;
+    iconPick.querySelectorAll('button').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+  });
+
+  const usrSave = v.querySelector('#usrSaveBtn');
+  if (usrSave) usrSave.addEventListener('click', () => {
+    const name = v.querySelector('#usrName').value.trim();
+    const facility = v.querySelector('#usrFac').value.trim();
+    const icon = (v.querySelector('#iconPick .sel') || {}).dataset?.icon || ICON_SET[0];
+    if (!name){ toast('⚠ <b>名前</b>を入力してください'); return; }
+    if (editUserId){
+      const u = user(editUserId);
+      if (u){ u.name = name; u.facility = facility; u.icon = icon; }
+      editUserId = null;
+      saveDB(); render();
+      toast(`✏️ <b>${name}</b>さんの情報を更新しました`);
+    } else {
+      DB.users.push({ id: genId('u'), name, icon, facility });
+      saveDB(); render();
+      toast(`👥 <b>${name}</b>さんを追加しました`);
+    }
+  });
+  const usrCancel = v.querySelector('#usrCancelBtn');
+  if (usrCancel) usrCancel.addEventListener('click', () => { editUserId = null; render(); });
+
+  v.querySelectorAll('[data-edituser]').forEach(b =>
+    b.addEventListener('click', () => { editUserId = b.dataset.edituser; render(); window.scrollTo(0,0); }));
+
+  v.querySelectorAll('[data-deluser]').forEach(b =>
+    b.addEventListener('click', () => {
+      const u = user(b.dataset.deluser); if (!u) return;
+      const n = DB.assignments.filter(a => a.userId === u.id).length;
+      const warn = n ? `\n※ ${u.name}さんの割当 ${n}件（進捗・提出をふくむ）も一緒に削除されます。` : '';
+      if (!confirm(`${u.name}さんを削除します。${warn}\nよろしいですか？`)) return;
+      DB.users = DB.users.filter(x => x.id !== u.id);
+      DB.assignments = DB.assignments.filter(a => a.userId !== u.id);
+      if (editUserId === u.id) editUserId = null;
+      saveDB(); render();
+      toast(`🗑 <b>${u.name}</b>さんを削除しました`);
+    }));
+
+  /* ---------- 管理画面：データ ---------- */
+  const exp = v.querySelector('#expBtn');
+  if (exp) exp.addEventListener('click', exportDB);
+  const impBtn = v.querySelector('#impBtn'), impFile = v.querySelector('#impFile');
+  if (impBtn) impBtn.addEventListener('click', () => impFile.click());
+  if (impFile) impFile.addEventListener('change', () => {
+    if (impFile.files[0]) importDB(impFile.files[0]);
+    impFile.value = '';
+  });
+  const stSave = v.querySelector('#staffSaveBtn');
+  if (stSave) stSave.addEventListener('click', () => {
+    const n = v.querySelector('#staffName').value.trim();
+    if (!n){ toast('⚠ 職員名を入力してください'); return; }
+    DB.staff[0].name = n; saveDB(); render();
+    toast('💾 職員名を<b>保存しました</b>');
+  });
+  const demoBtn = v.querySelector('#demoBtn');
+  if (demoBtn) demoBtn.addEventListener('click', () => {
+    if (!confirm('現在のデータを消して、最初のデモデータに戻します。\n（必要なら先に「データを書き出す」でバックアップしてください）\nよろしいですか？')) return;
+    applyData(JSON.parse(JSON.stringify(DEMO)));
+    saveDB(); render();
+    toast('↺ <b>デモデータ</b>に戻しました');
+  });
+  const wipeBtn = v.querySelector('#wipeBtn');
+  if (wipeBtn) wipeBtn.addEventListener('click', () => {
+    if (!confirm('利用者・割当をすべて削除して、空の状態から実運用を始めます。\n（必要なら先に「データを書き出す」でバックアップしてください）\nよろしいですか？')) return;
+    applyData({ users: [], staff: DB.staff, assignments: [] });
+    saveDB(); render();
+    toast('🗑 データを<b>空にしました</b>。利用者の登録から始めてください');
+  });
+
+  /* ---------- PINロック ---------- */
+  v.querySelectorAll('[data-pin]').forEach(b =>
+    b.addEventListener('click', () => {
+      if (pinBuf.length >= 4) return;
+      pinBuf += b.dataset.pin;
+      if (pinBuf.length === 4){
+        if (pinBuf === DB.settings.staffPin){
+          staffUnlocked = true;
+          const t = pinTarget || { name:'staff', params:{} };
+          pinTarget = null; pinBuf = ''; pinMsg = '';
+          go(t.name, t.params);
+        } else {
+          pinMsg = '番号がちがいます。もういちど入力してください。';
+          pinBuf = ''; render();
+        }
+      } else render();
+    }));
+  const pcl = v.querySelector('[data-pinclear]');
+  if (pcl) pcl.addEventListener('click', () => { pinBuf = ''; pinMsg = ''; render(); });
+  const pbk = v.querySelector('[data-pinback]');
+  if (pbk) pbk.addEventListener('click', () => { pinBuf = pinBuf.slice(0, -1); render(); });
+  const pfg = v.querySelector('#pinForgot');
+  if (pfg) pfg.addEventListener('click', () => {
+    if (!confirm('番号を忘れた場合は、安全のため、この端末のデータをすべて削除してロックを解除します。\n（利用者・割当・進捗が消えます。バックアップファイルがあれば、あとで「読み込み」で復元できます）\n本当に削除して解除しますか？')) return;
+    localStorage.removeItem(DB_KEY);
+    location.reload();
+  });
+
+  const lk = v.querySelector('#lockBtn');
+  if (lk) lk.addEventListener('click', () => {
+    staffUnlocked = false;
+    toast('🔒 指導員モードを<b>ロックしました</b>');
+    go('home');
+  });
+
+  const pset = v.querySelector('#pinSetBtn');
+  if (pset) pset.addEventListener('click', () => {
+    const val = v.querySelector('#pinInput').value.trim();
+    if (!/^\d{4}$/.test(val)){ toast('⚠ 番号は<b>4けたの数字</b>で入力してください'); return; }
+    DB.settings.staffPin = val;
+    staffUnlocked = true;   // 設定した本人のセッションは継続
+    saveDB(); render();
+    toast('🔒 ロック番号を<b>設定しました</b>');
+  });
+  const poff = v.querySelector('#pinOffBtn');
+  if (poff) poff.addEventListener('click', () => {
+    if (!confirm('ロックを解除して、番号なしにします。よろしいですか？')) return;
+    DB.settings.staffPin = '';
+    saveDB(); render();
+    toast('🔓 ロックを<b>解除しました</b>');
   });
 
   /* マニュアル・ヘルプ */
@@ -1158,7 +1878,10 @@ $('#modalBox').addEventListener('click', e => {
   if (t.id === 'callStaff'){ closeModal(); toast('🔔 職員さんに<b>おしらせ</b>しました。すこし待っていてください。'); }
 });
 
+/* ---------- 起動 ---------- */
+const restored = loadDB();
 render();
+setSaveChip(restored ? undefined : '💾 この端末に<b>自動保存</b>（初回はデモデータ）');
 </script>
 </body>
 </html>
